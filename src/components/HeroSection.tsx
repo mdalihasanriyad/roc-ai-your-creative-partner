@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Button } from "./ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
-import { ChatInput } from "./ChatInput";
+import { Link } from "react-router-dom";
 
 export const HeroSection = () => {
   return (
@@ -67,22 +67,43 @@ export const HeroSection = () => {
             transition={{ duration: 0.5, delay: 0.4 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16"
           >
-            <Button variant="hero" size="xl">
-              Start Creating Free
-              <ArrowRight className="h-5 w-5" />
-            </Button>
-            <Button variant="glass" size="xl">
-              See How It Works
+            <Link to="/chat">
+              <Button variant="hero" size="xl">
+                Start Chatting Free
+                <ArrowRight className="h-5 w-5" />
+              </Button>
+            </Link>
+            <Button variant="glass" size="xl" onClick={() => document.getElementById('capabilities')?.scrollIntoView({ behavior: 'smooth' })}>
+              See Capabilities
             </Button>
           </motion.div>
 
-          {/* Chat Input Preview */}
+          {/* Quick Start Suggestions */}
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5 }}
+            className="max-w-2xl mx-auto"
           >
-            <ChatInput />
+            <p className="text-sm text-muted-foreground mb-4">Try asking Roc to:</p>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              {[
+                "✍️ Write a cover letter",
+                "💻 Debug my React code",
+                "🎨 Create an image prompt",
+                "🔍 Research a topic",
+              ].map((suggestion) => (
+                <Link key={suggestion} to="/chat">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="px-4 py-2 rounded-full text-sm text-muted-foreground glass-card hover:text-foreground transition-colors"
+                  >
+                    {suggestion}
+                  </motion.button>
+                </Link>
+              ))}
+            </div>
           </motion.div>
         </div>
       </div>
