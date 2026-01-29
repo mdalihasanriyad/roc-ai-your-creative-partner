@@ -48,7 +48,7 @@ const Chat = () => {
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground hidden sm:block">
-            Powered by Lovable AI
+            Powered by Roc AI
           </span>
         </div>
       </header>
