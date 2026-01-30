@@ -131,7 +131,7 @@ const Chat = () => {
                   How can I help you today?
                 </h1>
                 <p className="text-muted-foreground mb-8">
-                  I'm Roc AI — your assistant for writing, coding, creativity, and research.
+                  I'm Roc AI - your assistant for writing, creativity, coding, and research.
                 </p>
 
                 {/* Suggestion Pills */}
