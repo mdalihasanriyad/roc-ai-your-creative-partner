@@ -7,6 +7,7 @@ export type Message = {
   id: string;
   role: "user" | "assistant";
   content: string;
+  timestamp?: string;
 };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
@@ -65,6 +66,7 @@ export function useChatPersistence(userId: string | undefined) {
             id: m.id,
             role: m.role as "user" | "assistant",
             content: m.content,
+            timestamp: m.created_at,
           })) || []
         );
       }
@@ -146,6 +148,7 @@ export function useChatPersistence(userId: string | undefined) {
         id: crypto.randomUUID(),
         role: "user",
         content: content.trim(),
+        timestamp: new Date().toISOString(),
       };
 
       setMessages((prev) => [...prev, userMessage]);
@@ -168,7 +171,7 @@ export function useChatPersistence(userId: string | undefined) {
 
       setMessages((prev) => [
         ...prev,
-        { id: assistantId, role: "assistant", content: "" },
+        { id: assistantId, role: "assistant", content: "", timestamp: new Date().toISOString() },
       ]);
 
       try {
