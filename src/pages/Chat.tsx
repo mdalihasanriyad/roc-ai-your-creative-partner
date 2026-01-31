@@ -11,8 +11,13 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { Menu, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
+
+
 
 const Chat = () => {
+
+
   const { user, isLoading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -62,6 +67,10 @@ const Chat = () => {
   }
 
   return (
+    <>
+      <Helmet>
+      <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
     <div className="flex h-screen bg-background">
       {/* Sidebar */}
       <ConversationSidebar
@@ -180,6 +189,7 @@ const Chat = () => {
         />
       </div>
     </div>
+    </>
   );
 };
 
