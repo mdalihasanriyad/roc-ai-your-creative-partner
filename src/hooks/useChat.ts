@@ -5,6 +5,7 @@ export type Message = {
   id: string;
   role: "user" | "assistant";
   content: string;
+  timestamp?: string;
 };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
@@ -20,6 +21,7 @@ export function useChat() {
       id: crypto.randomUUID(),
       role: "user",
       content: content.trim(),
+      timestamp: new Date().toISOString(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
@@ -31,7 +33,7 @@ export function useChat() {
     // Add empty assistant message that we'll update
     setMessages((prev) => [
       ...prev,
-      { id: assistantId, role: "assistant", content: "" },
+      { id: assistantId, role: "assistant", content: "", timestamp: new Date().toISOString() },
     ]);
 
     try {

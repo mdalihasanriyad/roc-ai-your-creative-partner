@@ -161,6 +161,7 @@ const Chat = () => {
                   key={message.id}
                   message={message}
                   isStreaming={isLoading && index === messages.length - 1 && message.role === "assistant"}
+                  timestamp={message.timestamp}
                 />
               ))}
               <div ref={messagesEndRef} />
