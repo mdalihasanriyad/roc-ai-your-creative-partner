@@ -128,7 +128,7 @@ const Chat = () => {
               >
                 <RocLogo size="lg" className="mx-auto mb-6" />
                 <h1 className="font-display text-2xl md:text-3xl font-bold mb-3">
-                  How can I help you today?
+                  How can I help you today !
                 </h1>
                 <p className="text-muted-foreground mb-8">
                   I'm Roc AI - your assistant for writing, creativity, coding, and research.
