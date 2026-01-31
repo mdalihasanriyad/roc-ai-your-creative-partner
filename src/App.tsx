@@ -9,7 +9,7 @@ import Index from "./pages/Index";
 import Chat from "./pages/Chat";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
-
+import { HelmetProvider } from "react-helmet-async";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -21,11 +21,13 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
+              <HelmetProvider>
               <Route path="/" element={<Index />} />
               <Route path="/chat" element={<Chat />} />
               <Route path="/auth" element={<Auth />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
+              </HelmetProvider>
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
