@@ -7,6 +7,7 @@ import { ChatMessage } from "@/components/ChatMessage";
 import { ChatInputBox } from "@/components/ChatInputBox";
 import { ConversationSidebar } from "@/components/ConversationSidebar";
 import { RocLogo } from "@/components/RocLogo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { Menu, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -110,6 +111,7 @@ const Chat = () => {
             </Link>
           </div>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <span className="text-xs text-muted-foreground hidden sm:block">
               Powered by Roc AI
             </span>
