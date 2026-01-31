@@ -1,16 +1,43 @@
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import { Message } from "@/hooks/useChat";
-import { RocLogo } from "./RocLogo";
 import { User } from "lucide-react";
+import { format } from "date-fns";
 
 interface ChatMessageProps {
   message: Message;
   isStreaming?: boolean;
+  timestamp?: string;
 }
 
-export const ChatMessage = ({ message, isStreaming }: ChatMessageProps) => {
+// Typing indicator component
+const TypingIndicator = () => (
+  <div className="flex items-center gap-1 px-2">
+    <motion.span
+      className="w-2 h-2 rounded-full bg-primary"
+      animate={{ opacity: [0.4, 1, 0.4] }}
+      transition={{ duration: 1, repeat: Infinity, delay: 0 }}
+    />
+    <motion.span
+      className="w-2 h-2 rounded-full bg-primary"
+      animate={{ opacity: [0.4, 1, 0.4] }}
+      transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
+    />
+    <motion.span
+      className="w-2 h-2 rounded-full bg-primary"
+      animate={{ opacity: [0.4, 1, 0.4] }}
+      transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
+    />
+  </div>
+);
+
+export const ChatMessage = ({ message, isStreaming, timestamp }: ChatMessageProps) => {
   const isUser = message.role === "user";
+  const showTypingIndicator = isStreaming && !message.content;
+
+  const formattedTime = timestamp 
+    ? format(new Date(timestamp), "h:mm a")
+    : format(new Date(), "h:mm a");
 
   return (
     <motion.div
@@ -59,7 +86,9 @@ export const ChatMessage = ({ message, isStreaming }: ChatMessageProps) => {
               : "glass-card"
           }`}
         >
-          {isUser ? (
+          {showTypingIndicator ? (
+            <TypingIndicator />
+          ) : isUser ? (
             <p className="whitespace-pre-wrap">{message.content}</p>
           ) : (
             <div className="prose prose-sm prose-invert max-w-none">
@@ -93,11 +122,15 @@ export const ChatMessage = ({ message, isStreaming }: ChatMessageProps) => {
                   ),
                 }}
               >
-                {message.content || (isStreaming ? "..." : "")}
+                {message.content || ""}
               </ReactMarkdown>
             </div>
           )}
         </div>
+        {/* Timestamp */}
+        <p className={`text-xs text-muted-foreground mt-1 ${isUser ? "text-right" : "text-left"}`}>
+          {formattedTime}
+        </p>
       </div>
     </motion.div>
   );

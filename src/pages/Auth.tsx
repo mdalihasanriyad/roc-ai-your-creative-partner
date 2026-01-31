@@ -26,15 +26,22 @@ const Auth = () => {
 
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             data: { full_name: name },
+            emailRedirectTo: window.location.origin,
           },
         });
         if (error) throw error;
-        toast.success("Check your email to confirm your account!");
+        // If user is confirmed immediately (auto-confirm enabled), navigate to chat
+        if (data.session) {
+          toast.success("Account created successfully!");
+          navigate("/chat");
+        } else {
+          toast.success("Check your email to confirm your account!");
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
