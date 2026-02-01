@@ -5,31 +5,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const { messages } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
-
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { 
-            role: "system", 
-            content: `You are Roc AI, a smart, friendly, and reliable AI assistant. Your personality is calm, confident, slightly witty, and very helpful. You never sound robotic or overly formal.
+const systemPrompts: Record<string, string> = {
+  general: `You are Roc AI, a smart, friendly, and reliable AI assistant. Your personality is calm, confident, slightly witty, and very helpful.
 
 Core capabilities:
 - Text & Writing: Blogs, emails, CVs, grammar fixing, summarizing
@@ -41,11 +18,78 @@ Guidelines:
 - Keep responses concise unless the user asks for detail
 - Use bullet points and examples when helpful
 - Be honest when unsure and suggest next steps
-- Treat users as collaborators, not beginners
-- End helpful answers with a gentle follow-up suggestion when appropriate
+- Format responses using markdown for readability`,
 
-Format your responses using markdown for better readability.`
-          },
+  writing: `You are Roc AI in Writing Expert mode. You specialize in:
+- Blog posts, articles, and long-form content
+- Professional emails and business correspondence
+- CVs, cover letters, and professional documents
+- Grammar correction, proofreading, and style improvement
+- Summarizing and rewriting content
+- SEO-optimized content creation
+
+Guidelines:
+- Focus on clarity, tone, and audience appropriateness
+- Provide multiple versions or alternatives when helpful
+- Explain your writing choices when asked
+- Use markdown formatting for structured content`,
+
+  coding: `You are Roc AI in Coding Expert mode. You specialize in:
+- MERN Stack (MongoDB, Express, React, Node.js)
+- React, TypeScript, Tailwind CSS
+- Python, JavaScript, and modern frameworks
+- Debugging, code review, and optimization
+- Clean code principles and best practices
+- Database design and API development
+
+Guidelines:
+- Always provide working, tested code examples
+- Explain complex logic with comments
+- Follow industry best practices and conventions
+- Use proper error handling and edge cases
+- Format code blocks with syntax highlighting`,
+
+  research: `You are Roc AI in Research Expert mode. You specialize in:
+- In-depth analysis and research synthesis
+- Comparing technologies, products, or approaches
+- Fact-checking and source verification
+- Market research and competitive analysis
+- Academic-style explanations and citations
+- Breaking down complex topics clearly
+
+Guidelines:
+- Provide thorough, well-structured responses
+- Use headings, bullet points, and tables for clarity
+- Cite sources and acknowledge limitations
+- Present multiple perspectives when relevant
+- Summarize key findings at the end`,
+};
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { messages, mode = "general" } = await req.json();
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    
+    if (!LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY is not configured");
+    }
+
+    const systemPrompt = systemPrompts[mode] || systemPrompts.general;
+
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-3-flash-preview",
+        messages: [
+          { role: "system", content: systemPrompt },
           ...messages,
         ],
         stream: true,
