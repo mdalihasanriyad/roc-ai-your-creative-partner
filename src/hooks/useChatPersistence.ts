@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Conversation } from "@/components/ConversationSidebar";
+import { AIMode } from "@/components/ModeSelector";
 
 export type Message = {
   id: string;
@@ -18,6 +19,7 @@ export function useChatPersistence(userId: string | undefined) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingConversations, setIsLoadingConversations] = useState(true);
+  const [mode, setMode] = useState<AIMode>("general");
 
   // Load conversations
   useEffect(() => {
@@ -186,6 +188,7 @@ export function useChatPersistence(userId: string | undefined) {
               role: m.role,
               content: m.content,
             })),
+            mode,
           }),
         });
 
@@ -264,7 +267,7 @@ export function useChatPersistence(userId: string | undefined) {
         setIsLoading(false);
       }
     },
-    [messages, isLoading, userId, currentConversationId, createConversation, updateConversationTitle]
+    [messages, isLoading, userId, currentConversationId, createConversation, updateConversationTitle, mode]
   );
 
   const selectConversation = useCallback((id: string) => {
@@ -286,5 +289,7 @@ export function useChatPersistence(userId: string | undefined) {
     selectConversation,
     startNewConversation,
     deleteConversation,
+    mode,
+    setMode,
   };
 }
