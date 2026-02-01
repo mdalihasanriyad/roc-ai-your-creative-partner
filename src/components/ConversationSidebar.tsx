@@ -1,6 +1,8 @@
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { MessageSquare, Plus, Trash2, X, LogOut } from "lucide-react";
+import { MessageSquare, Plus, Trash2, X, LogOut, Search } from "lucide-react";
 import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 import { ScrollArea } from "./ui/scroll-area";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +34,16 @@ export const ConversationSidebar = ({
   onSignOut,
   isOpen,
 }: ConversationSidebarProps) => {
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredConversations = useMemo(() => {
+    if (!searchQuery.trim()) return conversations;
+    const query = searchQuery.toLowerCase();
+    return conversations.filter(
+      (conv) => conv.title?.toLowerCase().includes(query)
+    );
+  }, [conversations, searchQuery]);
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -84,15 +96,28 @@ export const ConversationSidebar = ({
           </div>
         </div>
 
+        {/* Search Input */}
+        <div className="p-3 border-b border-border">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search conversations..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 h-9 bg-muted/50"
+            />
+          </div>
+        </div>
+
         {/* Conversations List */}
         <ScrollArea className="flex-1">
           <div className="p-2 space-y-1">
-            {conversations.length === 0 ? (
+            {filteredConversations.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-8">
-                No conversations yet
+                {searchQuery ? "No matching conversations" : "No conversations yet"}
               </p>
             ) : (
-              conversations.map((conv) => (
+              filteredConversations.map((conv) => (
                 <motion.div
                   key={conv.id}
                   initial={{ opacity: 0 }}
