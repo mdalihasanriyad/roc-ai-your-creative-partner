@@ -80,6 +80,14 @@ serve(async (req) => {
 
     const systemPrompt = systemPrompts[mode] || systemPrompts.general;
 
+    // Check if any message has image content (multimodal)
+    const hasImages = messages.some(
+      (m: any) => Array.isArray(m.content) && m.content.some((c: any) => c.type === "image_url")
+    );
+
+    // Use vision-capable model if images are present
+    const model = hasImages ? "google/gemini-2.5-flash" : "google/gemini-3-flash-preview";
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -87,7 +95,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model,
         messages: [
           { role: "system", content: systemPrompt },
           ...messages,

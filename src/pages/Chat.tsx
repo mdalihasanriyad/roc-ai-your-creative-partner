@@ -183,7 +183,7 @@ const Chat = () => {
 
         {/* Input Area */}
         <ChatInputBox
-          onSend={sendMessage}
+          onSend={(message, files) => sendMessage(message, files)}
           onClear={startNewConversation}
           isLoading={isLoading}
           hasMessages={messages.length > 0}
