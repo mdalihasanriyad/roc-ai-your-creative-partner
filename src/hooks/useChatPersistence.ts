@@ -2,15 +2,28 @@ import { useState, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Conversation } from "@/components/ConversationSidebar";
+import { AIMode } from "@/components/ModeSelector";
+import { FileAttachment } from "@/components/ChatInputBox";
 
 export type Message = {
   id: string;
   role: "user" | "assistant";
   content: string;
   timestamp?: string;
+  images?: string[]; // base64 image data
 };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
+
+// Convert file to base64
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+  });
+};
 
 export function useChatPersistence(userId: string | undefined) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -18,6 +31,7 @@ export function useChatPersistence(userId: string | undefined) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingConversations, setIsLoadingConversations] = useState(true);
+  const [mode, setMode] = useState<AIMode>("general");
 
   // Load conversations
   useEffect(() => {
@@ -133,8 +147,8 @@ export function useChatPersistence(userId: string | undefined) {
   }, [currentConversationId]);
 
   const sendMessage = useCallback(
-    async (content: string) => {
-      if (!content.trim() || isLoading || !userId) return;
+    async (content: string, files?: FileAttachment[]) => {
+      if ((!content.trim() && !files?.length) || isLoading || !userId) return;
 
       let convId = currentConversationId;
 
@@ -144,17 +158,31 @@ export function useChatPersistence(userId: string | undefined) {
         if (!convId) return;
       }
 
+      // Convert files to base64
+      let imageData: string[] = [];
+      if (files?.length) {
+        try {
+          imageData = await Promise.all(
+            files.filter((f) => f.type === "image").map((f) => fileToBase64(f.file))
+          );
+        } catch (error) {
+          console.error("Error converting files:", error);
+          toast.error("Failed to process images");
+        }
+      }
+
       const userMessage: Message = {
         id: crypto.randomUUID(),
         role: "user",
-        content: content.trim(),
+        content: content.trim() || "What's in this image?",
         timestamp: new Date().toISOString(),
+        images: imageData.length > 0 ? imageData : undefined,
       };
 
       setMessages((prev) => [...prev, userMessage]);
       setIsLoading(true);
 
-      // Save user message to DB
+      // Save user message to DB (without images to save space)
       await supabase.from("messages").insert({
         conversation_id: convId,
         role: "user",
@@ -175,6 +203,23 @@ export function useChatPersistence(userId: string | undefined) {
       ]);
 
       try {
+        // Build messages array for API - include images in multimodal format
+        const apiMessages = [...messages, userMessage].map((m) => {
+          if (m.images?.length) {
+            return {
+              role: m.role,
+              content: [
+                { type: "text", text: m.content },
+                ...m.images.map((img) => ({
+                  type: "image_url",
+                  image_url: { url: img },
+                })),
+              ],
+            };
+          }
+          return { role: m.role, content: m.content };
+        });
+
         const response = await fetch(CHAT_URL, {
           method: "POST",
           headers: {
@@ -182,10 +227,8 @@ export function useChatPersistence(userId: string | undefined) {
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
           body: JSON.stringify({
-            messages: [...messages, userMessage].map((m) => ({
-              role: m.role,
-              content: m.content,
-            })),
+            messages: apiMessages,
+            mode,
           }),
         });
 
@@ -264,7 +307,7 @@ export function useChatPersistence(userId: string | undefined) {
         setIsLoading(false);
       }
     },
-    [messages, isLoading, userId, currentConversationId, createConversation, updateConversationTitle]
+    [messages, isLoading, userId, currentConversationId, createConversation, updateConversationTitle, mode]
   );
 
   const selectConversation = useCallback((id: string) => {
@@ -286,5 +329,7 @@ export function useChatPersistence(userId: string | undefined) {
     selectConversation,
     startNewConversation,
     deleteConversation,
+    mode,
+    setMode,
   };
 }
