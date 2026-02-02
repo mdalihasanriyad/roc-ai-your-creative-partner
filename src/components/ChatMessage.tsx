@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
-import { Message } from "@/hooks/useChat";
+import { Message } from "@/hooks/useChatPersistence";
 import { User } from "lucide-react";
 import { format } from "date-fns";
 
@@ -86,6 +86,19 @@ export const ChatMessage = ({ message, isStreaming, timestamp }: ChatMessageProp
               : "glass-card"
           }`}
         >
+          {/* Image attachments for user messages */}
+          {isUser && message.images && message.images.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-2">
+              {message.images.map((img, index) => (
+                <img
+                  key={index}
+                  src={img}
+                  alt={`Attachment ${index + 1}`}
+                  className="max-w-[200px] max-h-[200px] rounded-lg object-cover"
+                />
+              ))}
+            </div>
+          )}
           {showTypingIndicator ? (
             <TypingIndicator />
           ) : isUser ? (
