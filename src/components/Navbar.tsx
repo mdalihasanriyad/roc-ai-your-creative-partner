@@ -40,9 +40,11 @@ export const Navbar = () => {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-3">
+            <Link to="/chat">
             <Button variant="ghost" size="sm">
               Sign In
             </Button>
+            </Link>
             <Link to="/chat">
             <Button variant="gradient" size="sm">
               Get Started
