@@ -3,6 +3,7 @@ import { RocLogo } from "./RocLogo";
 import { Button } from "./ui/button";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 export const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -42,9 +43,11 @@ export const Navbar = () => {
             <Button variant="ghost" size="sm">
               Sign In
             </Button>
+            <Link to="/chat">
             <Button variant="gradient" size="sm">
               Get Started
             </Button>
+            </Link>
           </div>
 
           {/* Mobile Menu Toggle */}
