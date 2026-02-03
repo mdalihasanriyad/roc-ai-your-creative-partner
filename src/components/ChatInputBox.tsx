@@ -1,7 +1,8 @@
-import { useState, FormEvent, KeyboardEvent, useRef } from "react";
+import { useState, FormEvent, KeyboardEvent, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Send, Paperclip, Trash2, X, Image } from "lucide-react";
+import { Send, Trash2, X, Image, Mic, MicOff } from "lucide-react";
 import { Button } from "./ui/button";
+import { toast } from "sonner";
 
 export type FileAttachment = {
   file: File;
@@ -16,6 +17,9 @@ interface ChatInputBoxProps {
   hasMessages: boolean;
 }
 
+// Check for Web Speech API support
+const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
 export const ChatInputBox = ({
   onSend,
   onClear,
@@ -24,10 +28,91 @@ export const ChatInputBox = ({
 }: ChatInputBoxProps) => {
   const [input, setInput] = useState("");
   const [attachments, setAttachments] = useState<FileAttachment[]>([]);
+  const [isListening, setIsListening] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<any>(null);
+
+  // Initialize speech recognition
+  useEffect(() => {
+    if (!SpeechRecognition) return;
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+
+    recognition.onresult = (event: any) => {
+      let finalTranscript = '';
+      let interimTranscript = '';
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript;
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+
+      if (finalTranscript) {
+        setInput(prev => prev + finalTranscript);
+      }
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error('Speech recognition error:', event.error);
+      if (event.error === 'not-allowed') {
+        toast.error('Microphone access denied. Please enable it in your browser settings.');
+      } else if (event.error !== 'aborted') {
+        toast.error('Voice recognition error. Please try again.');
+      }
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
+      if (isListening) {
+        // Restart if still supposed to be listening
+        try {
+          recognition.start();
+        } catch (e) {
+          setIsListening(false);
+        }
+      }
+    };
+
+    recognitionRef.current = recognition;
+
+    return () => {
+      recognition.stop();
+    };
+  }, [isListening]);
+
+  const toggleVoiceInput = () => {
+    if (!SpeechRecognition) {
+      toast.error('Voice input is not supported in your browser. Try Chrome or Edge.');
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+    } else {
+      try {
+        recognitionRef.current?.start();
+        setIsListening(true);
+        toast.success('Listening... Speak now');
+      } catch (e) {
+        toast.error('Could not start voice recognition');
+      }
+    }
+  };
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+    }
     if ((input.trim() || attachments.length > 0) && !isLoading) {
       onSend(input, attachments.length > 0 ? attachments : undefined);
       setInput("");
@@ -139,13 +224,37 @@ export const ChatInputBox = ({
                 <Image className="h-5 w-5" />
               </Button>
 
+              {/* Voice Input Button */}
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={toggleVoiceInput}
+                className={`flex-shrink-0 transition-colors ${
+                  isListening 
+                    ? "text-destructive animate-pulse" 
+                    : "text-muted-foreground hover:text-primary"
+                }`}
+                title={isListening ? "Stop listening" : "Voice input"}
+              >
+                {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+              </Button>
+
               <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={attachments.length > 0 ? "Add a message or send..." : "Ask Roc anything..."}
+                placeholder={
+                  isListening 
+                    ? "Listening... speak now" 
+                    : attachments.length > 0 
+                      ? "Add a message or send..." 
+                      : "Ask Roc anything..."
+                }
                 rows={1}
-                className="flex-1 bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground text-base py-3 px-2 resize-none min-h-[48px] max-h-[200px]"
+                className={`flex-1 bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground text-base py-3 px-2 resize-none min-h-[48px] max-h-[200px] ${
+                  isListening ? "placeholder:animate-pulse" : ""
+                }`}
                 style={{
                   height: "auto",
                   overflow: input.split("\n").length > 5 ? "auto" : "hidden",
