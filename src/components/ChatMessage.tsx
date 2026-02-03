@@ -1,8 +1,10 @@
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import { Message } from "@/hooks/useChatPersistence";
-import { User } from "lucide-react";
+import { User, Copy, Check } from "lucide-react";
 import { format } from "date-fns";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface ChatMessageProps {
   message: Message;
@@ -34,10 +36,22 @@ const TypingIndicator = () => (
 export const ChatMessage = ({ message, isStreaming, timestamp }: ChatMessageProps) => {
   const isUser = message.role === "user";
   const showTypingIndicator = isStreaming && !message.content;
+  const [copied, setCopied] = useState(false);
 
   const formattedTime = timestamp 
     ? format(new Date(timestamp), "h:mm a")
     : format(new Date(), "h:mm a");
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(message.content);
+      setCopied(true);
+      toast.success("Copied to clipboard");
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      toast.error("Failed to copy");
+    }
+  };
 
   return (
     <motion.div
@@ -80,12 +94,26 @@ export const ChatMessage = ({ message, isStreaming, timestamp }: ChatMessageProp
         }`}
       >
         <div
-          className={`inline-block rounded-2xl px-4 py-3 ${
+          className={`group relative inline-block rounded-2xl px-4 py-3 ${
             isUser
               ? "bg-gradient-to-r from-primary to-secondary text-primary-foreground"
               : "glass-card"
           }`}
         >
+          {/* Copy button for AI messages */}
+          {!isUser && message.content && !isStreaming && (
+            <button
+              onClick={handleCopy}
+              className="absolute top-2 right-2 p-1.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground"
+              title="Copy to clipboard"
+            >
+              {copied ? (
+                <Check className="w-3.5 h-3.5 text-green-500" />
+              ) : (
+                <Copy className="w-3.5 h-3.5" />
+              )}
+            </button>
+          )}
           {/* Image attachments for user messages */}
           {isUser && message.images && message.images.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-2">
