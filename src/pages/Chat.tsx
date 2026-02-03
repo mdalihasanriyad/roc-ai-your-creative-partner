@@ -34,6 +34,7 @@ const Chat = () => {
     selectConversation,
     startNewConversation,
     deleteConversation,
+    renameConversation,
     mode,
     setMode,
   } = useChatPersistence(user?.id);
@@ -88,6 +89,7 @@ const Chat = () => {
           setSidebarOpen(false);
         }}
         onDelete={deleteConversation}
+        onRename={renameConversation}
         onClose={() => setSidebarOpen(false)}
         onSignOut={handleSignOut}
         isOpen={sidebarOpen}

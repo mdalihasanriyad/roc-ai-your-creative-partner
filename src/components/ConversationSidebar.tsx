@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { MessageSquare, Plus, Trash2, X, LogOut, Search } from "lucide-react";
+import { MessageSquare, Plus, Trash2, X, LogOut, Search, Pencil, Check } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { ScrollArea } from "./ui/scroll-area";
@@ -19,6 +19,7 @@ interface ConversationSidebarProps {
   onSelect: (id: string) => void;
   onNew: () => void;
   onDelete: (id: string) => void;
+  onRename: (id: string, newTitle: string) => void;
   onClose?: () => void;
   onSignOut: () => void;
   isOpen: boolean;
@@ -30,11 +31,15 @@ export const ConversationSidebar = ({
   onSelect,
   onNew,
   onDelete,
+  onRename,
   onClose,
   onSignOut,
   isOpen,
 }: ConversationSidebarProps) => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const editInputRef = useRef<HTMLInputElement>(null);
 
   const filteredConversations = useMemo(() => {
     if (!searchQuery.trim()) return conversations;
@@ -43,6 +48,34 @@ export const ConversationSidebar = ({
       (conv) => conv.title?.toLowerCase().includes(query)
     );
   }, [conversations, searchQuery]);
+
+  useEffect(() => {
+    if (editingId && editInputRef.current) {
+      editInputRef.current.focus();
+      editInputRef.current.select();
+    }
+  }, [editingId]);
+
+  const startEditing = (conv: Conversation, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingId(conv.id);
+    setEditTitle(conv.title || "New conversation");
+  };
+
+  const saveEdit = (id: string) => {
+    if (editTitle.trim()) {
+      onRename(id, editTitle.trim());
+    }
+    setEditingId(null);
+  };
+
+  const handleEditKeyDown = (e: React.KeyboardEvent, id: string) => {
+    if (e.key === "Enter") {
+      saveEdit(id);
+    } else if (e.key === "Escape") {
+      setEditingId(null);
+    }
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -128,28 +161,66 @@ export const ConversationSidebar = ({
                       ? "bg-primary/10 text-primary"
                       : "hover:bg-muted"
                   )}
-                  onClick={() => onSelect(conv.id)}
+                  onClick={() => editingId !== conv.id && onSelect(conv.id)}
                 >
                   <MessageSquare className="h-4 w-4 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">
-                      {conv.title || "New conversation"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatDate(conv.updated_at)}
-                    </p>
+                    {editingId === conv.id ? (
+                      <Input
+                        ref={editInputRef}
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        onKeyDown={(e) => handleEditKeyDown(e, conv.id)}
+                        onBlur={() => saveEdit(conv.id)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="h-7 text-sm py-0 px-2"
+                      />
+                    ) : (
+                      <>
+                        <p className="text-sm font-medium truncate">
+                          {conv.title || "New conversation"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatDate(conv.updated_at)}
+                        </p>
+                      </>
+                    )}
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDelete(conv.id);
-                    }}
-                  >
-                    <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                  </Button>
+                  <div className="flex items-center gap-0.5">
+                    {editingId === conv.id ? (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          saveEdit(conv.id);
+                        }}
+                      >
+                        <Check className="h-3.5 w-3.5 text-green-500" />
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => startEditing(conv, e)}
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(conv.id);
+                      }}
+                    >
+                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                    </Button>
+                  </div>
                 </motion.div>
               ))
             )}
