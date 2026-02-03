@@ -146,6 +146,23 @@ export function useChatPersistence(userId: string | undefined) {
     }
   }, [currentConversationId]);
 
+  const renameConversation = useCallback(async (conversationId: string, newTitle: string) => {
+    const { error } = await supabase
+      .from("conversations")
+      .update({ title: newTitle })
+      .eq("id", conversationId);
+
+    if (error) {
+      toast.error("Failed to rename conversation");
+      return;
+    }
+
+    setConversations((prev) =>
+      prev.map((c) => (c.id === conversationId ? { ...c, title: newTitle } : c))
+    );
+    toast.success("Conversation renamed");
+  }, []);
+
   const sendMessage = useCallback(
     async (content: string, files?: FileAttachment[]) => {
       if ((!content.trim() && !files?.length) || isLoading || !userId) return;
@@ -329,6 +346,7 @@ export function useChatPersistence(userId: string | undefined) {
     selectConversation,
     startNewConversation,
     deleteConversation,
+    renameConversation,
     mode,
     setMode,
   };
