@@ -1,7 +1,8 @@
 import { useState, FormEvent, KeyboardEvent, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Send, Trash2, X, Image, Mic, MicOff } from "lucide-react";
+import { Send, Trash2, X, Image, Mic, MicOff, Wand2 } from "lucide-react";
 import { Button } from "./ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { toast } from "sonner";
 
 export type FileAttachment = {
@@ -31,6 +32,21 @@ export const ChatInputBox = ({
   const [isListening, setIsListening] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<any>(null);
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleGenerateImage = () => {
+    const prefix = "Generate an image of ";
+    setInput(prefix);
+    // Focus the textarea and place cursor at the end
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+        textareaRef.current.setSelectionRange(prefix.length, prefix.length);
+      }
+    }, 0);
+    toast.info("Describe the image you want to create");
+  };
 
   // Initialize speech recognition
   useEffect(() => {
@@ -210,16 +226,20 @@ export const ChatInputBox = ({
 
             <div className="flex items-end gap-2">
               {hasMessages && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={onClear}
-                  className="flex-shrink-0 text-muted-foreground hover:text-destructive"
-                  title="Clear chat"
-                >
-                  <Trash2 className="h-5 w-5" />
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={onClear}
+                      className="flex-shrink-0 text-muted-foreground hover:text-destructive"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Clear chat</TooltipContent>
+                </Tooltip>
               )}
 
               {/* File Upload Button */}
@@ -231,34 +251,63 @@ export const ChatInputBox = ({
                 onChange={handleFileSelect}
                 className="hidden"
               />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => fileInputRef.current?.click()}
-                className="flex-shrink-0 text-muted-foreground hover:text-primary"
-                title="Attach image"
-              >
-                <Image className="h-5 w-5" />
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex-shrink-0 text-muted-foreground hover:text-primary"
+                  >
+                    <Image className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Attach image</TooltipContent>
+              </Tooltip>
 
               {/* Voice Input Button */}
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={toggleVoiceInput}
-                className={`flex-shrink-0 transition-colors ${
-                  isListening 
-                    ? "text-destructive animate-pulse" 
-                    : "text-muted-foreground hover:text-primary"
-                }`}
-                title={isListening ? "Stop listening" : "Voice input"}
-              >
-                {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleVoiceInput}
+                    className={`flex-shrink-0 transition-colors ${
+                      isListening 
+                        ? "text-destructive animate-pulse" 
+                        : "text-muted-foreground hover:text-primary"
+                    }`}
+                  >
+                    {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {isListening ? "Stop listening" : "Voice input"}
+                </TooltipContent>
+              </Tooltip>
+
+              {/* Generate Image Button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleGenerateImage}
+                    className="flex-shrink-0 text-muted-foreground hover:text-primary"
+                  >
+                    <Wand2 className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Generate image with AI
+                </TooltipContent>
+              </Tooltip>
 
               <textarea
+                ref={textareaRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
