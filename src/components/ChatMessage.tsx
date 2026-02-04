@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import { Message } from "@/hooks/useChatPersistence";
-import { User, Copy, Check } from "lucide-react";
+import { User, Copy, Check, Download } from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -50,6 +50,24 @@ export const ChatMessage = ({ message, isStreaming, timestamp }: ChatMessageProp
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       toast.error("Failed to copy");
+    }
+  };
+
+  const handleDownloadImage = async (imageUrl: string, index: number) => {
+    try {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `generated-image-${index + 1}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      toast.success("Image downloaded");
+    } catch (err) {
+      toast.error("Failed to download image");
     }
   };
 
@@ -169,19 +187,27 @@ export const ChatMessage = ({ message, isStreaming, timestamp }: ChatMessageProp
               {message.generatedImages && message.generatedImages.length > 0 && (
                 <div className="flex flex-wrap gap-3 mt-3">
                   {message.generatedImages.map((img, index) => (
-                    <a
-                      key={index}
-                      href={img}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block"
-                    >
-                      <img
-                        src={img}
-                        alt={`Generated image ${index + 1}`}
-                        className="max-w-[400px] max-h-[400px] rounded-lg object-cover border border-border hover:opacity-90 transition-opacity cursor-pointer"
-                      />
-                    </a>
+                    <div key={index} className="relative group/image">
+                      <a
+                        href={img}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block"
+                      >
+                        <img
+                          src={img}
+                          alt={`Generated image ${index + 1}`}
+                          className="max-w-[400px] max-h-[400px] rounded-lg object-cover border border-border hover:opacity-90 transition-opacity cursor-pointer"
+                        />
+                      </a>
+                      <button
+                        onClick={() => handleDownloadImage(img, index)}
+                        className="absolute bottom-2 right-2 p-2 rounded-md bg-background/80 backdrop-blur-sm opacity-0 group-hover/image:opacity-100 transition-opacity hover:bg-background text-foreground shadow-md"
+                        title="Download image"
+                      >
+                        <Download className="w-4 h-4" />
+                      </button>
+                    </div>
                   ))}
                 </div>
               )}
