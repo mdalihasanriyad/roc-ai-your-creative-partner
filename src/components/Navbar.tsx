@@ -79,9 +79,11 @@ export const Navbar = () => {
                 About
               </a>
               <div className="flex flex-col gap-2 pt-2 border-t border-border">
+                <Link to="/chat">
                 <Button variant="ghost" className="w-full justify-center">
                   Sign In
                 </Button>
+                </Link>
                 <Button variant="gradient" className="w-full justify-center">
                   Get Started
                 </Button>
