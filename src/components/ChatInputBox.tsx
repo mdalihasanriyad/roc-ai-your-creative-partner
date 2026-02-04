@@ -121,9 +121,27 @@ export const ChatInputBox = ({
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    // Ctrl+Enter or Cmd+Enter to send
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      handleSubmit(e);
+      return;
+    }
+    // Enter without shift to send
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
+      return;
+    }
+    // Escape to clear input
+    if (e.key === "Escape") {
+      e.preventDefault();
+      setInput("");
+      setAttachments([]);
+      if (isListening) {
+        recognitionRef.current?.stop();
+        setIsListening(false);
+      }
     }
   };
 
