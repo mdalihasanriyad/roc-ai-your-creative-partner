@@ -84,9 +84,11 @@ export const Navbar = () => {
                   Sign In
                 </Button>
                 </Link>
+                <Link to="/chat">
                 <Button variant="gradient" className="w-full justify-center">
                   Get Started
                 </Button>
+                </Link>
               </div>
             </div>
           </motion.div>
