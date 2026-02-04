@@ -10,7 +10,8 @@ export type Message = {
   role: "user" | "assistant";
   content: string;
   timestamp?: string;
-  images?: string[]; // base64 image data
+  images?: string[]; // base64 image data for user uploads
+  generatedImages?: string[]; // base64 image data for AI generated images
 };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
@@ -254,44 +255,67 @@ export function useChatPersistence(userId: string | undefined) {
           throw new Error(errorData.error || `Request failed with status ${response.status}`);
         }
 
-        if (!response.body) throw new Error("No response body");
+        const contentType = response.headers.get("content-type") || "";
 
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
+        // Handle image generation response (non-streaming JSON)
+        if (contentType.includes("application/json")) {
+          const data = await response.json();
+          
+          if (data.type === "image_generation") {
+            const generatedImageUrls = data.images?.map((img: any) => img.image_url?.url).filter(Boolean) || [];
+            
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantId
+                  ? { ...m, content: data.content || "Here's your generated image:", generatedImages: generatedImageUrls }
+                  : m
+              )
+            );
+            assistantContent = data.content || "Here's your generated image:";
+          } else if (data.error) {
+            throw new Error(data.error);
+          }
+        } else {
+          // Handle streaming response (text/event-stream)
+          if (!response.body) throw new Error("No response body");
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = "";
 
-          buffer += decoder.decode(value, { stream: true });
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
 
-          let newlineIndex: number;
-          while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
-            let line = buffer.slice(0, newlineIndex);
-            buffer = buffer.slice(newlineIndex + 1);
+            buffer += decoder.decode(value, { stream: true });
 
-            if (line.endsWith("\r")) line = line.slice(0, -1);
-            if (line.startsWith(":") || line.trim() === "") continue;
-            if (!line.startsWith("data: ")) continue;
+            let newlineIndex: number;
+            while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
+              let line = buffer.slice(0, newlineIndex);
+              buffer = buffer.slice(newlineIndex + 1);
 
-            const jsonStr = line.slice(6).trim();
-            if (jsonStr === "[DONE]") break;
+              if (line.endsWith("\r")) line = line.slice(0, -1);
+              if (line.startsWith(":") || line.trim() === "") continue;
+              if (!line.startsWith("data: ")) continue;
 
-            try {
-              const parsed = JSON.parse(jsonStr);
-              const delta = parsed.choices?.[0]?.delta?.content;
-              if (delta) {
-                assistantContent += delta;
-                setMessages((prev) =>
-                  prev.map((m) =>
-                    m.id === assistantId ? { ...m, content: assistantContent } : m
-                  )
-                );
+              const jsonStr = line.slice(6).trim();
+              if (jsonStr === "[DONE]") break;
+
+              try {
+                const parsed = JSON.parse(jsonStr);
+                const delta = parsed.choices?.[0]?.delta?.content;
+                if (delta) {
+                  assistantContent += delta;
+                  setMessages((prev) =>
+                    prev.map((m) =>
+                      m.id === assistantId ? { ...m, content: assistantContent } : m
+                    )
+                  );
+                }
+              } catch {
+                buffer = line + "\n" + buffer;
+                break;
               }
-            } catch {
-              buffer = line + "\n" + buffer;
-              break;
             }
           }
         }
