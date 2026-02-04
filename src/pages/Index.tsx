@@ -33,7 +33,7 @@ const Index = () => {
 
         {/* Twitter / X */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Roc AI – Smart & Lovable AI Assistant" />
+        <meta name="twitter:title" content="Roc AI – Smart AI Assistant" />
         <meta
           name="twitter:description"
           content="A friendly AI assistant to chat, learn and create smarter."
