@@ -9,20 +9,20 @@ const Index = () => {
     <div className="min-h-screen bg-background overflow-x-hidden">
       <Helmet>
         {/* Primary SEO */}
-        <title>Roc AI – Smart & Lovable AI Assistant</title>
+        <title>Roc AI – Smart AI Assistant</title>
         <meta
           name="description"
-          content="Roc AI is a smart, fast and lovable AI assistant that helps you chat, learn and solve problems. Works smoothly on mobile, tablet and desktop."
+          content="Roc AI is a smart, fast  AI assistant that helps you chat, learn and solve problems. Works smoothly on mobile, tablet and desktop."
         />
         <meta
           name="keywords"
-          content="Roc AI, AI assistant, lovable AI, smart chatbot, free AI chat app"
+          content="Roc AI, AI assistant, smart chatbot, free AI chat app"
         />
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href="https://rocai.vercel.app/" />
 
         {/* Open Graph */}
-        <meta property="og:title" content="Roc AI – Smart & Lovable AI Assistant" />
+        <meta property="og:title" content="Roc AI – Smart AI Assistant" />
         <meta
           property="og:description"
           content="Chat smarter with Roc AI – a fast, friendly and intelligent AI assistant."
