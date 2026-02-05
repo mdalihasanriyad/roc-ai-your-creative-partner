@@ -37,6 +37,9 @@ const Chat = () => {
     renameConversation,
     mode,
     setMode,
+    regenerateImage,
+    editImage,
+    isEditingImage,
   } = useChatPersistence(user?.id);
 
   useEffect(() => {
@@ -176,6 +179,9 @@ const Chat = () => {
                   message={message}
                   isStreaming={isLoading && index === messages.length - 1 && message.role === "assistant"}
                   timestamp={message.timestamp}
+                  onRegenerateImage={regenerateImage}
+                  onEditImage={editImage}
+                  isEditingImage={isEditingImage}
                 />
               ))}
               <div ref={messagesEndRef} />
