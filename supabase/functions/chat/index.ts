@@ -66,6 +66,11 @@ Guidelines:
 - Summarize key findings at the end`,
 };
 
+// Detect if user is asking for image editing
+function isImageEditRequest(mode: string): boolean {
+  return mode === "image_edit";
+}
+
 // Detect if user is asking for image generation
 function isImageGenerationRequest(message: string): boolean {
   const lowerMessage = message.toLowerCase();
@@ -121,14 +126,15 @@ serve(async (req) => {
 
     // Check if this is an image generation request
     const isImageRequest = isImageGenerationRequest(userContent);
+    const isEditRequest = isImageEditRequest(mode);
 
     // Check if any message has image content (multimodal input)
     const hasImages = messages.some(
       (m: any) => Array.isArray(m.content) && m.content.some((c: any) => c.type === "image_url")
     );
 
-    // Handle image generation request
-    if (isImageRequest) {
+    // Handle image generation or edit request
+    if (isImageRequest || isEditRequest) {
       const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -138,7 +144,10 @@ serve(async (req) => {
         body: JSON.stringify({
           model: "google/gemini-2.5-flash-image",
           messages: [
-            { role: "system", content: "You are an image generation assistant. Generate the requested image based on the user's description. Be creative and produce high-quality visuals." },
+            { role: "system", content: isEditRequest 
+              ? "You are an image editing assistant. Apply the requested edits to the provided image. Maintain the original image's style while applying the modifications."
+              : "You are an image generation assistant. Generate the requested image based on the user's description. Be creative and produce high-quality visuals." 
+            },
             ...messages,
           ],
           modalities: ["image", "text"],
