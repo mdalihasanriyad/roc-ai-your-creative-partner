@@ -1,9 +1,15 @@
 import { useState, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { toast as sonnerToast } from "sonner";
 import { Conversation } from "@/components/ConversationSidebar";
 import { AIMode } from "@/components/ModeSelector";
 import { FileAttachment } from "@/components/ChatInputBox";
+
+// Wrap toast to prevent duplicate messages
+const toast = {
+  error: (msg: string) => sonnerToast.error(msg, { id: msg }),
+  success: (msg: string) => sonnerToast.success(msg, { id: msg }),
+};
 
 export type Message = {
   id: string;
@@ -33,6 +39,7 @@ export function useChatPersistence(userId: string | undefined) {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingConversations, setIsLoadingConversations] = useState(true);
   const [mode, setMode] = useState<AIMode>("general");
+  const [isEditingImage, setIsEditingImage] = useState(false);
 
   // Load conversations
   useEffect(() => {
@@ -168,12 +175,18 @@ export function useChatPersistence(userId: string | undefined) {
     async (content: string, files?: FileAttachment[]) => {
       if ((!content.trim() && !files?.length) || isLoading || !userId) return;
 
+      // Set loading state immediately for instant UI feedback
+      setIsLoading(true);
+
       let convId = currentConversationId;
 
       // Create conversation if none exists
       if (!convId) {
         convId = await createConversation();
-        if (!convId) return;
+        if (!convId) {
+          setIsLoading(false);
+          return;
+        }
       }
 
       // Convert files to base64
@@ -198,14 +211,6 @@ export function useChatPersistence(userId: string | undefined) {
       };
 
       setMessages((prev) => [...prev, userMessage]);
-      setIsLoading(true);
-
-      // Save user message to DB (without images to save space)
-      await supabase.from("messages").insert({
-        conversation_id: convId,
-        role: "user",
-        content: userMessage.content,
-      });
 
       // Update title if first message
       if (messages.length === 0) {
@@ -221,8 +226,9 @@ export function useChatPersistence(userId: string | undefined) {
       ]);
 
       try {
-        // Build messages array for API - include images in multimodal format
-        const apiMessages = [...messages, userMessage].map((m) => {
+        // Build messages array for API - limit to recent messages to reduce payload and latency
+        const recentMessages = messages.slice(-20);
+        const apiMessages = [...recentMessages, userMessage].map((m) => {
           if (m.images?.length) {
             return {
               role: m.role,
@@ -236,6 +242,15 @@ export function useChatPersistence(userId: string | undefined) {
             };
           }
           return { role: m.role, content: m.content };
+        });
+
+        // Save user message to DB in parallel (non-blocking for faster response)
+        supabase.from("messages").insert({
+          conversation_id: convId,
+          role: "user",
+          content: userMessage.content,
+        }).then(({ error }) => {
+          if (error) console.error("Error saving user message:", error);
         });
 
         const response = await fetch(CHAT_URL, {
@@ -360,6 +375,122 @@ export function useChatPersistence(userId: string | undefined) {
     setMessages([]);
   }, []);
 
+  const regenerateImage = useCallback(
+    async (prompt: string) => {
+      // Send a new image generation request
+      await sendMessage(`Generate an image of ${prompt}`);
+    },
+    [sendMessage]
+  );
+
+  const editImage = useCallback(
+    async (imageUrl: string, instruction: string) => {
+      if (!userId || isLoading) return;
+
+      // Set loading state immediately for instant UI feedback
+      setIsLoading(true);
+      setIsEditingImage(true);
+
+      let convId = currentConversationId;
+      if (!convId) {
+        convId = await createConversation();
+        if (!convId) {
+          setIsLoading(false);
+          setIsEditingImage(false);
+          return;
+        }
+      }
+
+      const userMessage: Message = {
+        id: crypto.randomUUID(),
+        role: "user",
+        content: `Edit image: ${instruction}`,
+        timestamp: new Date().toISOString(),
+        images: [imageUrl],
+      };
+
+      setMessages((prev) => [...prev, userMessage]);
+
+      const assistantId = crypto.randomUUID();
+      setMessages((prev) => [
+        ...prev,
+        { id: assistantId, role: "assistant", content: "", timestamp: new Date().toISOString() },
+      ]);
+
+      try {
+        // Save user message to DB in parallel (non-blocking)
+        supabase.from("messages").insert({
+          conversation_id: convId,
+          role: "user",
+          content: userMessage.content,
+        }).then(({ error }) => {
+          if (error) console.error("Error saving edit message:", error);
+        });
+
+        const response = await fetch(CHAT_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({
+            messages: [
+              {
+                role: "user",
+                content: [
+                  { type: "text", text: `Edit this image: ${instruction}` },
+                  { type: "image_url", image_url: { url: imageUrl } },
+                ],
+              },
+            ],
+            mode: "image_edit",
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Request failed with status ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.type === "image_generation" || data.images) {
+          const generatedImageUrls = data.images?.map((img: any) => img.image_url?.url).filter(Boolean) || [];
+
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === assistantId
+                ? { ...m, content: data.content || "Here's your edited image:", generatedImages: generatedImageUrls }
+                : m
+            )
+          );
+
+          // Save to DB
+          await supabase.from("messages").insert({
+            conversation_id: convId,
+            role: "assistant",
+            content: data.content || "Here's your edited image:",
+          });
+
+          await supabase
+            .from("conversations")
+            .update({ updated_at: new Date().toISOString() })
+            .eq("id", convId);
+        } else if (data.error) {
+          throw new Error(data.error);
+        }
+      } catch (error) {
+        console.error("Image edit error:", error);
+        toast.error(error instanceof Error ? error.message : "Failed to edit image");
+        setMessages((prev) => prev.filter((m) => m.id !== assistantId));
+      } finally {
+        setIsEditingImage(false);
+        setIsLoading(false);
+      }
+    },
+    [userId, isLoading, currentConversationId, createConversation]
+  );
+
   return {
     conversations,
     currentConversationId,
@@ -373,5 +504,8 @@ export function useChatPersistence(userId: string | undefined) {
     renameConversation,
     mode,
     setMode,
+    regenerateImage,
+    editImage,
+    isEditingImage,
   };
 }

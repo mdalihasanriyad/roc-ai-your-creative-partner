@@ -2,6 +2,7 @@ import { useRef, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useChatPersistence } from "@/hooks/useChatPersistence";
+import { useApiWarmup } from "@/hooks/useApiWarmup";
 import { useAuth } from "@/contexts/AuthContext";
 import { ChatMessage } from "@/components/ChatMessage";
 import { ChatInputBox } from "@/components/ChatInputBox";
@@ -17,8 +18,9 @@ import { Helmet } from "react-helmet-async";
 
 
 const Chat = () => {
-
-
+  // Warm up the API on component mount to reduce first request latency
+  useApiWarmup();
+ 
   const { user, isLoading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -37,6 +39,9 @@ const Chat = () => {
     renameConversation,
     mode,
     setMode,
+    regenerateImage,
+    editImage,
+    isEditingImage,
   } = useChatPersistence(user?.id);
 
   useEffect(() => {
@@ -176,6 +181,9 @@ const Chat = () => {
                   message={message}
                   isStreaming={isLoading && index === messages.length - 1 && message.role === "assistant"}
                   timestamp={message.timestamp}
+                  onRegenerateImage={regenerateImage}
+                  onEditImage={editImage}
+                  isEditingImage={isEditingImage}
                 />
               ))}
               <div ref={messagesEndRef} />
