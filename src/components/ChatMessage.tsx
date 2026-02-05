@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ImageEditDialog } from "./ImageEditDialog";
+import { ThinkingIndicator } from "./ThinkingIndicator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ChatMessageProps {
@@ -16,27 +17,6 @@ interface ChatMessageProps {
   onEditImage?: (imageUrl: string, instruction: string) => void;
   isEditingImage?: boolean;
 }
-
-// Typing indicator component
-const TypingIndicator = () => (
-  <div className="flex items-center gap-1 px-2">
-    <motion.span
-      className="w-2 h-2 rounded-full bg-primary"
-      animate={{ opacity: [0.4, 1, 0.4] }}
-      transition={{ duration: 1, repeat: Infinity, delay: 0 }}
-    />
-    <motion.span
-      className="w-2 h-2 rounded-full bg-primary"
-      animate={{ opacity: [0.4, 1, 0.4] }}
-      transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
-    />
-    <motion.span
-      className="w-2 h-2 rounded-full bg-primary"
-      animate={{ opacity: [0.4, 1, 0.4] }}
-      transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
-    />
-  </div>
-);
 
 export const ChatMessage = ({ 
   message, 
@@ -179,7 +159,7 @@ export const ChatMessage = ({
               </div>
             )}
             {showTypingIndicator ? (
-              <TypingIndicator />
+              <ThinkingIndicator />
             ) : isUser ? (
               <p className="whitespace-pre-wrap">{message.content}</p>
             ) : (

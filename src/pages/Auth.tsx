@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { useApiWarmup } from "@/hooks/useApiWarmup";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +14,9 @@ import { Link } from "react-router-dom";
 type AuthMode = "login" | "signup";
 
 const Auth = () => {
+  // Pre-warm the API while user is on auth page
+  useApiWarmup();
+
   const [mode, setMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

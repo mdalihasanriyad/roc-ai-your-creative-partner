@@ -1,9 +1,15 @@
 import { useState, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { toast as sonnerToast } from "sonner";
 import { Conversation } from "@/components/ConversationSidebar";
 import { AIMode } from "@/components/ModeSelector";
 import { FileAttachment } from "@/components/ChatInputBox";
+
+// Wrap toast to prevent duplicate messages
+const toast = {
+  error: (msg: string) => sonnerToast.error(msg, { id: msg }),
+  success: (msg: string) => sonnerToast.success(msg, { id: msg }),
+};
 
 export type Message = {
   id: string;
@@ -169,12 +175,18 @@ export function useChatPersistence(userId: string | undefined) {
     async (content: string, files?: FileAttachment[]) => {
       if ((!content.trim() && !files?.length) || isLoading || !userId) return;
 
+      // Set loading state immediately for instant UI feedback
+      setIsLoading(true);
+
       let convId = currentConversationId;
 
       // Create conversation if none exists
       if (!convId) {
         convId = await createConversation();
-        if (!convId) return;
+        if (!convId) {
+          setIsLoading(false);
+          return;
+        }
       }
 
       // Convert files to base64
@@ -199,14 +211,6 @@ export function useChatPersistence(userId: string | undefined) {
       };
 
       setMessages((prev) => [...prev, userMessage]);
-      setIsLoading(true);
-
-      // Save user message to DB (without images to save space)
-      await supabase.from("messages").insert({
-        conversation_id: convId,
-        role: "user",
-        content: userMessage.content,
-      });
 
       // Update title if first message
       if (messages.length === 0) {
@@ -222,8 +226,9 @@ export function useChatPersistence(userId: string | undefined) {
       ]);
 
       try {
-        // Build messages array for API - include images in multimodal format
-        const apiMessages = [...messages, userMessage].map((m) => {
+        // Build messages array for API - limit to recent messages to reduce payload and latency
+        const recentMessages = messages.slice(-20);
+        const apiMessages = [...recentMessages, userMessage].map((m) => {
           if (m.images?.length) {
             return {
               role: m.role,
@@ -237,6 +242,15 @@ export function useChatPersistence(userId: string | undefined) {
             };
           }
           return { role: m.role, content: m.content };
+        });
+
+        // Save user message to DB in parallel (non-blocking for faster response)
+        supabase.from("messages").insert({
+          conversation_id: convId,
+          role: "user",
+          content: userMessage.content,
+        }).then(({ error }) => {
+          if (error) console.error("Error saving user message:", error);
         });
 
         const response = await fetch(CHAT_URL, {
@@ -373,13 +387,19 @@ export function useChatPersistence(userId: string | undefined) {
     async (imageUrl: string, instruction: string) => {
       if (!userId || isLoading) return;
 
+      // Set loading state immediately for instant UI feedback
+      setIsLoading(true);
+      setIsEditingImage(true);
+
       let convId = currentConversationId;
       if (!convId) {
         convId = await createConversation();
-        if (!convId) return;
+        if (!convId) {
+          setIsLoading(false);
+          setIsEditingImage(false);
+          return;
+        }
       }
-
-      setIsEditingImage(true);
 
       const userMessage: Message = {
         id: crypto.randomUUID(),
@@ -391,13 +411,6 @@ export function useChatPersistence(userId: string | undefined) {
 
       setMessages((prev) => [...prev, userMessage]);
 
-      // Save user message to DB
-      await supabase.from("messages").insert({
-        conversation_id: convId,
-        role: "user",
-        content: userMessage.content,
-      });
-
       const assistantId = crypto.randomUUID();
       setMessages((prev) => [
         ...prev,
@@ -405,6 +418,15 @@ export function useChatPersistence(userId: string | undefined) {
       ]);
 
       try {
+        // Save user message to DB in parallel (non-blocking)
+        supabase.from("messages").insert({
+          conversation_id: convId,
+          role: "user",
+          content: userMessage.content,
+        }).then(({ error }) => {
+          if (error) console.error("Error saving edit message:", error);
+        });
+
         const response = await fetch(CHAT_URL, {
           method: "POST",
           headers: {
@@ -463,6 +485,7 @@ export function useChatPersistence(userId: string | undefined) {
         setMessages((prev) => prev.filter((m) => m.id !== assistantId));
       } finally {
         setIsEditingImage(false);
+        setIsLoading(false);
       }
     },
     [userId, isLoading, currentConversationId, createConversation]
