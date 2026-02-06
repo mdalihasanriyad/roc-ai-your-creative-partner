@@ -4,6 +4,7 @@ import { toast as sonnerToast } from "sonner";
 import { Conversation } from "@/components/ConversationSidebar";
 import { AIMode } from "@/components/ModeSelector";
 import { FileAttachment } from "@/components/ChatInputBox";
+import { getCachedResponse, setCachedResponse } from "@/hooks/useResponseCache";
 
 // Wrap toast to prevent duplicate messages
 const toast = {
@@ -220,6 +221,40 @@ export function useChatPersistence(userId: string | undefined) {
       let assistantContent = "";
       const assistantId = crypto.randomUUID();
 
+      // Check cache for text-only queries without images
+      const cached = !imageData.length ? getCachedResponse(userMessage.content) : null;
+      if (cached) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: assistantId,
+            role: "assistant",
+            content: cached.response,
+            timestamp: new Date().toISOString(),
+            generatedImages: cached.generatedImages,
+          },
+        ]);
+
+        // Still save to DB
+        supabase.from("messages").insert({
+          conversation_id: convId!,
+          role: "user",
+          content: userMessage.content,
+        }).then(({ error }) => { if (error) console.error("Error saving user message:", error); });
+
+        await supabase.from("messages").insert({
+          conversation_id: convId!,
+          role: "assistant",
+          content: cached.response,
+        });
+        await supabase.from("conversations").update({ updated_at: new Date().toISOString() }).eq("id", convId!);
+        setConversations((prev) =>
+          prev.map((c) => c.id === convId ? { ...c, updated_at: new Date().toISOString() } : c)
+        );
+        setIsLoading(false);
+        return;
+      }
+
       setMessages((prev) => [
         ...prev,
         { id: assistantId, role: "assistant", content: "", timestamp: new Date().toISOString() },
@@ -354,6 +389,11 @@ export function useChatPersistence(userId: string | undefined) {
               c.id === convId ? { ...c, updated_at: new Date().toISOString() } : c
             )
           );
+
+          // Cache the response for future identical queries (text-only, no images)
+          if (!imageData.length) {
+            setCachedResponse(userMessage.content, assistantContent);
+          }
         }
       } catch (error) {
         console.error("Chat error:", error);
