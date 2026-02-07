@@ -299,7 +299,8 @@ export function useChatPersistence(userId: string | undefined) {
           if (error) console.error("Error saving user message:", error);
         });
 
-        const response = await fetch(CHAT_URL, {
+      const fetchWithRetry = async (retries = 1): Promise<Response> => {
+        const res = await fetch(CHAT_URL, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -311,10 +312,19 @@ export function useChatPersistence(userId: string | undefined) {
           }),
         });
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.error || `Request failed with status ${response.status}`);
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          if (retries > 0) {
+            console.warn("Chat request failed, retrying...", errorData);
+            await new Promise((r) => setTimeout(r, 1000));
+            return fetchWithRetry(retries - 1);
+          }
+          throw new Error(errorData.error || `Request failed with status ${res.status}`);
         }
+        return res;
+      };
+
+      const response = await fetchWithRetry();
 
         const contentType = response.headers.get("content-type") || "";
 
