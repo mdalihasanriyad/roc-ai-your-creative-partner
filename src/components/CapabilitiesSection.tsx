@@ -41,7 +41,7 @@ const capabilities = [
   },
   {
     icon: Search,
-    title: "Research & Knowledge",
+    title: "Research & Knowledgement",
     description: "Deep research and clear insights to help you understand complex topics quickly.",
     features: [
       "In-depth research",
