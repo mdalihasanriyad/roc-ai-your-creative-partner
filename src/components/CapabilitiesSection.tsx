@@ -30,11 +30,11 @@ const capabilities = [
   {
     icon: Palette,
     title: "Image & Creative",
-    description: "Generate stunning AI image prompts for any creative project you can imagine.",
+    description: "Generate stunning AI image prompts for any creative project you can imaginations.",
     features: [
       "Detailed image prompts",
       "Social media creatives",
-      "UI mockups & poster",
+      "UI mockups & posters",
       "Ads & marketing visuals",
     ],
     gradient: "bg-gradient-to-br from-orange-500 to-red-500",
