@@ -41,6 +41,8 @@ export function useChatPersistence(userId: string | undefined) {
   const [isLoadingConversations, setIsLoadingConversations] = useState(true);
   const [mode, setMode] = useState<AIMode>("general");
   const [isEditingImage, setIsEditingImage] = useState(false);
+  // Flag to skip message reload when we just created a conversation inline
+  const [skipMessageReload, setSkipMessageReload] = useState(false);
 
   // Load conversations
   useEffect(() => {
@@ -74,6 +76,12 @@ export function useChatPersistence(userId: string | undefined) {
       return;
     }
 
+    // Skip reload if we just created this conversation inline during sendMessage
+    if (skipMessageReload) {
+      setSkipMessageReload(false);
+      return;
+    }
+
     const loadMessages = async () => {
       const { data, error } = await supabase
         .from("messages")
@@ -96,7 +104,7 @@ export function useChatPersistence(userId: string | undefined) {
     };
 
     loadMessages();
-  }, [currentConversationId]);
+  }, [currentConversationId, skipMessageReload]);
 
   const createConversation = useCallback(async () => {
     if (!userId) return null;
@@ -183,8 +191,11 @@ export function useChatPersistence(userId: string | undefined) {
 
       // Create conversation if none exists
       if (!convId) {
+        // Set flag before creating so the useEffect won't wipe messages
+        setSkipMessageReload(true);
         convId = await createConversation();
         if (!convId) {
+          setSkipMessageReload(false);
           setIsLoading(false);
           return;
         }
