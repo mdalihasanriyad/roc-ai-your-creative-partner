@@ -34,7 +34,7 @@ const capabilities = [
     features: [
       "Detailed image prompts",
       "Social media creatives",
-      "UI mockups & posters",
+      "UI mockups & poster",
       "Ads & marketing visuals",
     ],
     gradient: "bg-gradient-to-br from-orange-500 to-red-500",
