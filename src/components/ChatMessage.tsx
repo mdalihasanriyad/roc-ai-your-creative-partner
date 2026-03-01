@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import { Message } from "@/hooks/useChatPersistence";
-import { User, Copy, Check, Download, RefreshCw, Pencil } from "lucide-react";
+import { User, Copy, Check, Download, RefreshCw, Pencil, ImageIcon } from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -28,6 +28,8 @@ export const ChatMessage = ({
 }: ChatMessageProps) => {
   const isUser = message.role === "user";
   const showTypingIndicator = isStreaming && !message.content;
+  const isGeneratingImage = (isStreaming || isEditingImage) && !message.generatedImages?.length && 
+    (message.content?.toLowerCase().includes("generat") || message.content?.toLowerCase().includes("creat") || message.content?.toLowerCase().includes("edit") || message.content === "");
   const [copied, setCopied] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedImageForEdit, setSelectedImageForEdit] = useState<string>("");
@@ -139,7 +141,7 @@ export const ChatMessage = ({
                 title="Copy to clipboard"
               >
                 {copied ? (
-                  <Check className="w-3.5 h-3.5 text-green-500" />
+                  <Check className="w-3.5 h-3.5 text-primary" />
                 ) : (
                   <Copy className="w-3.5 h-3.5" />
                 )}
@@ -196,6 +198,39 @@ export const ChatMessage = ({
                 >
                   {message.content || ""}
                 </ReactMarkdown>
+                {/* Image generation skeleton */}
+                {isGeneratingImage && (
+                  <div className="mt-3">
+                    <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground">
+                      <ImageIcon className="w-3.5 h-3.5 animate-pulse text-primary" />
+                      <span>Generating image…</span>
+                    </div>
+                    <motion.div
+                      className="relative w-[300px] h-[300px] rounded-lg overflow-hidden border border-border"
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      {/* Shimmer base */}
+                      <div className="absolute inset-0 bg-muted" />
+                      {/* Shimmer sweep */}
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-muted-foreground/10 to-transparent"
+                        animate={{ x: ["-100%", "100%"] }}
+                        transition={{ repeat: Infinity, duration: 1.4, ease: "linear" }}
+                      />
+                      {/* Center icon */}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <motion.div
+                          animate={{ scale: [1, 1.1, 1], opacity: [0.4, 0.7, 0.4] }}
+                          transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                        >
+                          <ImageIcon className="w-10 h-10 text-muted-foreground/30" />
+                        </motion.div>
+                      </div>
+                    </motion.div>
+                  </div>
+                )}
                 {/* Generated images */}
                 {message.generatedImages && message.generatedImages.length > 0 && (
                   <div className="flex flex-wrap gap-3 mt-3">
