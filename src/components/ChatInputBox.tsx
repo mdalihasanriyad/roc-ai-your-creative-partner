@@ -28,6 +28,8 @@ export const ChatInputBox = ({
   hasMessages,
 }: ChatInputBoxProps) => {
   const [input, setInput] = useState("");
+  const [customStyle, setCustomStyle] = useState("");
+  const [customStyleActive, setCustomStyleActive] = useState(false);
   const [attachments, setAttachments] = useState<FileAttachment[]>([]);
   const [isListening, setIsListening] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -45,11 +47,38 @@ export const ChatInputBox = ({
   const isImageMode = input.toLowerCase().startsWith("generate an image of");
 
   const applyStylePreset = (suffix: string) => {
-    // Remove any existing preset suffix first
     let base = input;
+    // Remove all known preset suffixes
     IMAGE_STYLE_PRESETS.forEach(p => { base = base.replace(p.suffix, ""); });
+    // Remove active custom style if any
+    if (customStyleActive && customStyle) {
+      base = base.replace(`, ${customStyle}`, "");
+    }
+    setCustomStyleActive(false);
     setInput(base.trimEnd() + suffix);
     textareaRef.current?.focus();
+  };
+
+  const applyCustomStyle = () => {
+    if (!customStyle.trim()) return;
+    const suffix = `, ${customStyle.trim()}`;
+    let base = input;
+    IMAGE_STYLE_PRESETS.forEach(p => { base = base.replace(p.suffix, ""); });
+    // Remove previous custom style
+    if (customStyleActive && customStyle) {
+      base = base.replace(`, ${customStyle}`, "");
+    }
+    setCustomStyleActive(true);
+    setInput(base.trimEnd() + suffix);
+    textareaRef.current?.focus();
+  };
+
+  const removeCustomStyle = () => {
+    if (customStyleActive && customStyle) {
+      setInput(prev => prev.replace(`, ${customStyle}`, ""));
+    }
+    setCustomStyleActive(false);
+    setCustomStyle("");
   };
 
   const handleGenerateImage = () => {
@@ -216,8 +245,7 @@ export const ChatInputBox = ({
             <motion.div
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 6 }}
-              className="flex gap-2 flex-wrap mb-2"
+              className="flex gap-2 flex-wrap items-center mb-2"
             >
               {IMAGE_STYLE_PRESETS.map((preset) => {
                 const active = input.includes(preset.suffix);
@@ -236,6 +264,39 @@ export const ChatInputBox = ({
                   </button>
                 );
               })}
+
+              {/* Custom style chip + input */}
+              {customStyleActive ? (
+                <button
+                  type="button"
+                  onClick={removeCustomStyle}
+                  className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border bg-primary text-primary-foreground border-primary transition-all duration-200"
+                >
+                  {customStyle}
+                  <X className="h-3 w-3" />
+                </button>
+              ) : (
+                <form
+                  onSubmit={(e) => { e.preventDefault(); applyCustomStyle(); }}
+                  className="flex items-center gap-1"
+                >
+                  <input
+                    type="text"
+                    value={customStyle}
+                    onChange={(e) => setCustomStyle(e.target.value)}
+                    placeholder="Custom style…"
+                    className="text-xs bg-muted/50 border border-border rounded-full px-3 py-1 w-28 outline-none focus:border-primary text-foreground placeholder:text-muted-foreground transition-colors"
+                  />
+                  {customStyle.trim() && (
+                    <button
+                      type="submit"
+                      className="px-2 py-1 rounded-full text-xs font-medium border border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-200"
+                    >
+                      Apply
+                    </button>
+                  )}
+                </form>
+              )}
             </motion.div>
           )}
 
