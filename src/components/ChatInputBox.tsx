@@ -35,6 +35,23 @@ export const ChatInputBox = ({
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  const IMAGE_STYLE_PRESETS = [
+    { label: "Photorealistic", suffix: ", photorealistic, ultra-detailed" },
+    { label: "Anime", suffix: ", anime style, vibrant" },
+    { label: "Watercolor", suffix: ", watercolor painting, soft strokes" },
+    { label: "Oil Painting", suffix: ", oil painting, textured canvas" },
+  ];
+
+  const isImageMode = input.toLowerCase().startsWith("generate an image of");
+
+  const applyStylePreset = (suffix: string) => {
+    // Remove any existing preset suffix first
+    let base = input;
+    IMAGE_STYLE_PRESETS.forEach(p => { base = base.replace(p.suffix, ""); });
+    setInput(base.trimEnd() + suffix);
+    textareaRef.current?.focus();
+  };
+
   const handleGenerateImage = () => {
     const prefix = "Generate an image of ";
     setInput(prefix);
@@ -194,7 +211,35 @@ export const ChatInputBox = ({
           whileFocus={{ scale: 1.01 }}
           className="relative"
         >
-          {/* Glow Effect */}
+      {/* Style Presets */}
+          {isImageMode && (
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 6 }}
+              className="flex gap-2 flex-wrap mb-2"
+            >
+              {IMAGE_STYLE_PRESETS.map((preset) => {
+                const active = input.includes(preset.suffix);
+                return (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    onClick={() => applyStylePreset(active ? "" : preset.suffix)}
+                    className={`px-3 py-1 rounded-full text-xs font-medium border transition-all duration-200 ${
+                      active
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-muted/50 text-muted-foreground border-border hover:border-primary hover:text-foreground"
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                );
+              })}
+            </motion.div>
+          )}
+
+      {/* Glow Effect */}
           <div className="absolute -inset-1 bg-gradient-to-r from-primary to-secondary rounded-2xl opacity-10 blur-lg" />
 
           {/* Input Container */}
