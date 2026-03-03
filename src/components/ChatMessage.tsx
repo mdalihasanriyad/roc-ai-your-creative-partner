@@ -3,7 +3,7 @@ import ReactMarkdown from "react-markdown";
 import { Message } from "@/hooks/useChatPersistence";
 import { User, Copy, Check, Download, RefreshCw, Pencil, ImageIcon } from "lucide-react";
 import { format } from "date-fns";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { ImageEditDialog } from "./ImageEditDialog";
 import { ThinkingIndicator } from "./ThinkingIndicator";
@@ -33,6 +33,18 @@ export const ChatMessage = ({
   const [copied, setCopied] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedImageForEdit, setSelectedImageForEdit] = useState<string>("");
+  const [elapsed, setElapsed] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (isGeneratingImage) {
+      setElapsed(0);
+      timerRef.current = setInterval(() => setElapsed(s => s + 1), 1000);
+    } else {
+      if (timerRef.current) clearInterval(timerRef.current);
+    }
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [isGeneratingImage]);
 
   const formattedTime = timestamp 
     ? format(new Date(timestamp), "h:mm a")
@@ -203,7 +215,7 @@ export const ChatMessage = ({
                   <div className="mt-3">
                     <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground">
                       <ImageIcon className="w-3.5 h-3.5 animate-pulse text-primary" />
-                      <span>Generating image…</span>
+                      <span>Generating image… ~{elapsed}s</span>
                     </div>
                     <motion.div
                       className="relative w-[300px] h-[300px] rounded-lg overflow-hidden border border-border"
