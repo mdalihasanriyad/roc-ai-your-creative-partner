@@ -45,6 +45,12 @@ export const ChatInputBox = ({
     { label: "Oil Painting", suffix: ", oil painting, textured canvas" },
   ];
 
+  const ASPECT_RATIOS = [
+    { label: "Square 1:1", value: "1:1" },
+    { label: "Landscape 16:9", value: "16:9" },
+    { label: "Portrait 9:16", value: "9:16" },
+  ];
+
   const isImageMode = input.toLowerCase().startsWith("generate an image of");
 
   const applyStylePreset = (suffix: string) => {
