@@ -183,9 +183,14 @@ export const ChatInputBox = ({
       setIsListening(false);
     }
     if ((input.trim() || attachments.length > 0) && !isLoading) {
-      onSend(input, attachments.length > 0 ? attachments : undefined);
+      const messageWithRatio =
+        isImageMode && aspectRatio
+          ? `${input.trimEnd()}, ${aspectRatio} aspect ratio`
+          : input;
+      onSend(messageWithRatio, attachments.length > 0 ? attachments : undefined);
       setInput("");
       setAttachments([]);
+      setAspectRatio(null);
     }
   };
 
