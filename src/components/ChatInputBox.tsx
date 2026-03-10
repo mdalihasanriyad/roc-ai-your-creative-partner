@@ -30,6 +30,7 @@ export const ChatInputBox = ({
   const [input, setInput] = useState("");
   const [customStyle, setCustomStyle] = useState("");
   const [customStyleActive, setCustomStyleActive] = useState(false);
+  const [aspectRatio, setAspectRatio] = useState<string | null>(null);
   const [attachments, setAttachments] = useState<FileAttachment[]>([]);
   const [isListening, setIsListening] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -42,6 +43,12 @@ export const ChatInputBox = ({
     { label: "Anime", suffix: ", anime style, vibrant" },
     { label: "Watercolor", suffix: ", watercolor painting, soft strokes" },
     { label: "Oil Painting", suffix: ", oil painting, textured canvas" },
+  ];
+
+  const ASPECT_RATIOS = [
+    { label: "Square 1:1", value: "1:1" },
+    { label: "Landscape 16:9", value: "16:9" },
+    { label: "Portrait 9:16", value: "9:16" },
   ];
 
   const isImageMode = input.toLowerCase().startsWith("generate an image of");
@@ -176,9 +183,14 @@ export const ChatInputBox = ({
       setIsListening(false);
     }
     if ((input.trim() || attachments.length > 0) && !isLoading) {
-      onSend(input, attachments.length > 0 ? attachments : undefined);
+      const messageWithRatio =
+        isImageMode && aspectRatio
+          ? `${input.trimEnd()}, ${aspectRatio} aspect ratio`
+          : input;
+      onSend(messageWithRatio, attachments.length > 0 ? attachments : undefined);
       setInput("");
       setAttachments([]);
+      setAspectRatio(null);
     }
   };
 
@@ -240,63 +252,85 @@ export const ChatInputBox = ({
           whileFocus={{ scale: 1.01 }}
           className="relative"
         >
-      {/* Style Presets */}
+      {/* Style Presets & Aspect Ratio */}
           {isImageMode && (
             <motion.div
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex gap-2 flex-wrap items-center mb-2"
+              className="flex flex-col gap-2 mb-2"
             >
-              {IMAGE_STYLE_PRESETS.map((preset) => {
-                const active = input.includes(preset.suffix);
-                return (
+              {/* Style row */}
+              <div className="flex gap-2 flex-wrap items-center">
+                {IMAGE_STYLE_PRESETS.map((preset) => {
+                  const active = input.includes(preset.suffix);
+                  return (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      onClick={() => applyStylePreset(active ? "" : preset.suffix)}
+                      className={`px-3 py-1 rounded-full text-xs font-medium border transition-all duration-200 ${
+                        active
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-muted/50 text-muted-foreground border-border hover:border-primary hover:text-foreground"
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  );
+                })}
+
+                {/* Custom style chip + input */}
+                {customStyleActive ? (
                   <button
-                    key={preset.label}
                     type="button"
-                    onClick={() => applyStylePreset(active ? "" : preset.suffix)}
+                    onClick={removeCustomStyle}
+                    className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border bg-primary text-primary-foreground border-primary transition-all duration-200"
+                  >
+                    {customStyle}
+                    <X className="h-3 w-3" />
+                  </button>
+                ) : (
+                  <form
+                    onSubmit={(e) => { e.preventDefault(); applyCustomStyle(); }}
+                    className="flex items-center gap-1"
+                  >
+                    <input
+                      type="text"
+                      value={customStyle}
+                      onChange={(e) => setCustomStyle(e.target.value)}
+                      placeholder="Custom style…"
+                      className="text-xs bg-muted/50 border border-border rounded-full px-3 py-1 w-28 outline-none focus:border-primary text-foreground placeholder:text-muted-foreground transition-colors"
+                    />
+                    {customStyle.trim() && (
+                      <button
+                        type="submit"
+                        className="px-2 py-1 rounded-full text-xs font-medium border border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-200"
+                      >
+                        Apply
+                      </button>
+                    )}
+                  </form>
+                )}
+              </div>
+
+              {/* Aspect ratio row */}
+              <div className="flex gap-2 flex-wrap items-center">
+                <span className="text-xs text-muted-foreground">Ratio:</span>
+                {ASPECT_RATIOS.map((ratio) => (
+                  <button
+                    key={ratio.value}
+                    type="button"
+                    onClick={() => setAspectRatio(aspectRatio === ratio.value ? null : ratio.value)}
                     className={`px-3 py-1 rounded-full text-xs font-medium border transition-all duration-200 ${
-                      active
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-muted/50 text-muted-foreground border-border hover:border-primary hover:text-foreground"
+                      aspectRatio === ratio.value
+                        ? "bg-secondary text-secondary-foreground border-secondary"
+                        : "bg-muted/50 text-muted-foreground border-border hover:border-secondary hover:text-foreground"
                     }`}
                   >
-                    {preset.label}
+                    {ratio.label}
                   </button>
-                );
-              })}
-
-              {/* Custom style chip + input */}
-              {customStyleActive ? (
-                <button
-                  type="button"
-                  onClick={removeCustomStyle}
-                  className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border bg-primary text-primary-foreground border-primary transition-all duration-200"
-                >
-                  {customStyle}
-                  <X className="h-3 w-3" />
-                </button>
-              ) : (
-                <form
-                  onSubmit={(e) => { e.preventDefault(); applyCustomStyle(); }}
-                  className="flex items-center gap-1"
-                >
-                  <input
-                    type="text"
-                    value={customStyle}
-                    onChange={(e) => setCustomStyle(e.target.value)}
-                    placeholder="Custom style…"
-                    className="text-xs bg-muted/50 border border-border rounded-full px-3 py-1 w-28 outline-none focus:border-primary text-foreground placeholder:text-muted-foreground transition-colors"
-                  />
-                  {customStyle.trim() && (
-                    <button
-                      type="submit"
-                      className="px-2 py-1 rounded-full text-xs font-medium border border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-200"
-                    >
-                      Apply
-                    </button>
-                  )}
-                </form>
-              )}
+                ))}
+              </div>
             </motion.div>
           )}
 
