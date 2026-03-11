@@ -32,6 +32,13 @@ export const ChatInputBox = ({
   const [customStyleActive, setCustomStyleActive] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<string | null>(null);
   const [attachments, setAttachments] = useState<FileAttachment[]>([]);
+  const [recentStyles, setRecentStyles] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem("roc-recent-styles") || "[]");
+    } catch {
+      return [];
+    }
+  });
   const [isListening, setIsListening] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<any>(null);
@@ -66,15 +73,22 @@ export const ChatInputBox = ({
     textareaRef.current?.focus();
   };
 
-  const applyCustomStyle = () => {
-    if (!customStyle.trim()) return;
-    const suffix = `, ${customStyle.trim()}`;
+  const applyCustomStyle = (styleOverride?: string) => {
+    const style = (styleOverride ?? customStyle).trim();
+    if (!style) return;
+    const suffix = `, ${style}`;
     let base = input;
     IMAGE_STYLE_PRESETS.forEach(p => { base = base.replace(p.suffix, ""); });
-    // Remove previous custom style
     if (customStyleActive && customStyle) {
       base = base.replace(`, ${customStyle}`, "");
     }
+    // Save to recent styles
+    setRecentStyles(prev => {
+      const updated = [style, ...prev.filter(s => s !== style)].slice(0, 5);
+      localStorage.setItem("roc-recent-styles", JSON.stringify(updated));
+      return updated;
+    });
+    if (styleOverride) setCustomStyle(styleOverride);
     setCustomStyleActive(true);
     setInput(base.trimEnd() + suffix);
     textareaRef.current?.focus();
@@ -290,26 +304,42 @@ export const ChatInputBox = ({
                     <X className="h-3 w-3" />
                   </button>
                 ) : (
-                  <form
-                    onSubmit={(e) => { e.preventDefault(); applyCustomStyle(); }}
-                    className="flex items-center gap-1"
-                  >
-                    <input
-                      type="text"
-                      value={customStyle}
-                      onChange={(e) => setCustomStyle(e.target.value)}
-                      placeholder="Custom style…"
-                      className="text-xs bg-muted/50 border border-border rounded-full px-3 py-1 w-28 outline-none focus:border-primary text-foreground placeholder:text-muted-foreground transition-colors"
-                    />
-                    {customStyle.trim() && (
-                      <button
-                        type="submit"
-                        className="px-2 py-1 rounded-full text-xs font-medium border border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-200"
-                      >
-                        Apply
-                      </button>
+                  <div className="flex flex-col gap-1">
+                    <form
+                      onSubmit={(e) => { e.preventDefault(); applyCustomStyle(); }}
+                      className="flex items-center gap-1"
+                    >
+                      <input
+                        type="text"
+                        value={customStyle}
+                        onChange={(e) => setCustomStyle(e.target.value)}
+                        placeholder="Custom style…"
+                        className="text-xs bg-muted/50 border border-border rounded-full px-3 py-1 w-28 outline-none focus:border-primary text-foreground placeholder:text-muted-foreground transition-colors"
+                      />
+                      {customStyle.trim() && (
+                        <button
+                          type="submit"
+                          className="px-2 py-1 rounded-full text-xs font-medium border border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-200"
+                        >
+                          Apply
+                        </button>
+                      )}
+                    </form>
+                    {recentStyles.length > 0 && (
+                      <div className="flex gap-1 flex-wrap">
+                        {recentStyles.map((style) => (
+                          <button
+                            key={style}
+                            type="button"
+                            onClick={() => applyCustomStyle(style)}
+                            className="px-2 py-0.5 rounded-full text-xs border border-dashed border-border text-muted-foreground hover:border-primary hover:text-foreground transition-all duration-200"
+                          >
+                            {style}
+                          </button>
+                        ))}
+                      </div>
                     )}
-                  </form>
+                  </div>
                 )}
               </div>
 
