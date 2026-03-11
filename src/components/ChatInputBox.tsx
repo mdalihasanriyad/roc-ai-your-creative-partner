@@ -32,6 +32,13 @@ export const ChatInputBox = ({
   const [customStyleActive, setCustomStyleActive] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<string | null>(null);
   const [attachments, setAttachments] = useState<FileAttachment[]>([]);
+  const [recentStyles, setRecentStyles] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem("roc-recent-styles") || "[]");
+    } catch {
+      return [];
+    }
+  });
   const [isListening, setIsListening] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<any>(null);
