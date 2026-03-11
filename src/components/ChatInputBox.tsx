@@ -304,26 +304,42 @@ export const ChatInputBox = ({
                     <X className="h-3 w-3" />
                   </button>
                 ) : (
-                  <form
-                    onSubmit={(e) => { e.preventDefault(); applyCustomStyle(); }}
-                    className="flex items-center gap-1"
-                  >
-                    <input
-                      type="text"
-                      value={customStyle}
-                      onChange={(e) => setCustomStyle(e.target.value)}
-                      placeholder="Custom style…"
-                      className="text-xs bg-muted/50 border border-border rounded-full px-3 py-1 w-28 outline-none focus:border-primary text-foreground placeholder:text-muted-foreground transition-colors"
-                    />
-                    {customStyle.trim() && (
-                      <button
-                        type="submit"
-                        className="px-2 py-1 rounded-full text-xs font-medium border border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-200"
-                      >
-                        Apply
-                      </button>
+                  <div className="flex flex-col gap-1">
+                    <form
+                      onSubmit={(e) => { e.preventDefault(); applyCustomStyle(); }}
+                      className="flex items-center gap-1"
+                    >
+                      <input
+                        type="text"
+                        value={customStyle}
+                        onChange={(e) => setCustomStyle(e.target.value)}
+                        placeholder="Custom style…"
+                        className="text-xs bg-muted/50 border border-border rounded-full px-3 py-1 w-28 outline-none focus:border-primary text-foreground placeholder:text-muted-foreground transition-colors"
+                      />
+                      {customStyle.trim() && (
+                        <button
+                          type="submit"
+                          className="px-2 py-1 rounded-full text-xs font-medium border border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-200"
+                        >
+                          Apply
+                        </button>
+                      )}
+                    </form>
+                    {recentStyles.length > 0 && (
+                      <div className="flex gap-1 flex-wrap">
+                        {recentStyles.map((style) => (
+                          <button
+                            key={style}
+                            type="button"
+                            onClick={() => applyCustomStyle(style)}
+                            className="px-2 py-0.5 rounded-full text-xs border border-dashed border-border text-muted-foreground hover:border-primary hover:text-foreground transition-all duration-200"
+                          >
+                            {style}
+                          </button>
+                        ))}
+                      </div>
                     )}
-                  </form>
+                  </div>
                 )}
               </div>
 
