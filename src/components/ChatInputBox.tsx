@@ -102,6 +102,15 @@ export const ChatInputBox = ({
     setCustomStyle("");
   };
 
+  const removeRecentStyle = (style: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setRecentStyles(prev => {
+      const updated = prev.filter(s => s !== style);
+      localStorage.setItem("roc-recent-styles", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const handleGenerateImage = () => {
     const prefix = "Generate an image of ";
     setInput(prefix);
