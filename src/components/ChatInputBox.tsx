@@ -102,6 +102,15 @@ export const ChatInputBox = ({
     setCustomStyle("");
   };
 
+  const removeRecentStyle = (style: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setRecentStyles(prev => {
+      const updated = prev.filter(s => s !== style);
+      localStorage.setItem("roc-recent-styles", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const handleGenerateImage = () => {
     const prefix = "Generate an image of ";
     setInput(prefix);
@@ -328,14 +337,26 @@ export const ChatInputBox = ({
                     {recentStyles.length > 0 && (
                       <div className="flex gap-1 flex-wrap">
                         {recentStyles.map((style) => (
-                          <button
+                          <div
                             key={style}
-                            type="button"
-                            onClick={() => applyCustomStyle(style)}
-                            className="px-2 py-0.5 rounded-full text-xs border border-dashed border-border text-muted-foreground hover:border-primary hover:text-foreground transition-all duration-200"
+                            className="group flex items-center gap-0.5 pl-2 pr-1 py-0.5 rounded-full text-xs border border-dashed border-border text-muted-foreground hover:border-primary hover:text-foreground transition-all duration-200"
                           >
-                            {style}
-                          </button>
+                            <button
+                              type="button"
+                              onClick={() => applyCustomStyle(style)}
+                              className="leading-none"
+                            >
+                              {style}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => removeRecentStyle(style, e)}
+                              className="ml-0.5 rounded-full p-0.5 opacity-0 group-hover:opacity-100 hover:bg-muted transition-all duration-150"
+                              aria-label={`Remove ${style}`}
+                            >
+                              <X className="h-2.5 w-2.5" />
+                            </button>
+                          </div>
                         ))}
                       </div>
                     )}
