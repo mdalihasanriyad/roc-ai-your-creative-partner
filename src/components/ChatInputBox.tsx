@@ -73,15 +73,22 @@ export const ChatInputBox = ({
     textareaRef.current?.focus();
   };
 
-  const applyCustomStyle = () => {
-    if (!customStyle.trim()) return;
-    const suffix = `, ${customStyle.trim()}`;
+  const applyCustomStyle = (styleOverride?: string) => {
+    const style = (styleOverride ?? customStyle).trim();
+    if (!style) return;
+    const suffix = `, ${style}`;
     let base = input;
     IMAGE_STYLE_PRESETS.forEach(p => { base = base.replace(p.suffix, ""); });
-    // Remove previous custom style
     if (customStyleActive && customStyle) {
       base = base.replace(`, ${customStyle}`, "");
     }
+    // Save to recent styles
+    setRecentStyles(prev => {
+      const updated = [style, ...prev.filter(s => s !== style)].slice(0, 5);
+      localStorage.setItem("roc-recent-styles", JSON.stringify(updated));
+      return updated;
+    });
+    if (styleOverride) setCustomStyle(styleOverride);
     setCustomStyleActive(true);
     setInput(base.trimEnd() + suffix);
     textareaRef.current?.focus();
