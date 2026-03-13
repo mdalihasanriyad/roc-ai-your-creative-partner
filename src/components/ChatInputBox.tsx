@@ -71,9 +71,7 @@ export const ChatInputBox = ({
   // Reset image-specific state when leaving image mode
   useEffect(() => {
     if (!isImageMode) {
-      setAspectRatio(null);
-      setCustomStyle("");
-      setCustomStyleActive(false);
+      saveAspectRatio(null);
     }
   }, [isImageMode]);
 
