@@ -400,7 +400,7 @@ export const ChatInputBox = ({
                   <button
                     key={ratio.value}
                     type="button"
-                    onClick={() => setAspectRatio(aspectRatio === ratio.value ? null : ratio.value)}
+                    onClick={() => saveAspectRatio(aspectRatio === ratio.value ? null : ratio.value)}
                     className={`px-3 py-1 rounded-full text-xs font-medium border transition-all duration-200 ${
                       aspectRatio === ratio.value
                         ? "bg-secondary text-secondary-foreground border-secondary"
