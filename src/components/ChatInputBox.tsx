@@ -60,6 +60,15 @@ export const ChatInputBox = ({
 
   const isImageMode = input.toLowerCase().startsWith("generate an image of");
 
+  // Reset image-specific state when leaving image mode
+  useEffect(() => {
+    if (!isImageMode) {
+      setAspectRatio(null);
+      setCustomStyle("");
+      setCustomStyleActive(false);
+    }
+  }, [isImageMode]);
+
   const applyStylePreset = (suffix: string) => {
     let base = input;
     // Remove all known preset suffixes
