@@ -123,14 +123,13 @@ export const ChatInputBox = ({
   const handleGenerateImage = () => {
     const prefix = "Generate an image of ";
     setInput(prefix);
-    // Focus the textarea and place cursor at the end
-    setTimeout(() => {
+    // Focus the textarea and place cursor at the end of the prefix
+    requestAnimationFrame(() => {
       if (textareaRef.current) {
         textareaRef.current.focus();
         textareaRef.current.setSelectionRange(prefix.length, prefix.length);
       }
-    }, 0);
-    toast.info("Describe the image you want to create");
+    });
   };
 
   // Initialize speech recognition
