@@ -30,7 +30,9 @@ export const ChatInputBox = ({
   const [input, setInput] = useState("");
   const [customStyle, setCustomStyle] = useState("");
   const [customStyleActive, setCustomStyleActive] = useState(false);
-  const [aspectRatio, setAspectRatio] = useState<string | null>(null);
+  const [aspectRatio, setAspectRatio] = useState<string | null>(
+    () => localStorage.getItem("roc-aspect-ratio")
+  );
   const [attachments, setAttachments] = useState<FileAttachment[]>([]);
   const [recentStyles, setRecentStyles] = useState<string[]>(() => {
     try {
