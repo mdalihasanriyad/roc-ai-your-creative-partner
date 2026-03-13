@@ -227,7 +227,7 @@ export const ChatInputBox = ({
       onSend(messageWithRatio, attachments.length > 0 ? attachments : undefined);
       setInput("");
       setAttachments([]);
-      setAspectRatio(null);
+      saveAspectRatio(null);
     }
   };
 
