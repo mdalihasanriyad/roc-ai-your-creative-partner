@@ -344,29 +344,44 @@ export const ChatInputBox = ({
                       )}
                     </form>
                     {recentStyles.length > 0 && (
-                      <div className="flex gap-1 flex-wrap">
-                        {recentStyles.map((style) => (
-                          <div
-                            key={style}
-                            className="group flex items-center gap-0.5 pl-2 pr-1 py-0.5 rounded-full text-xs border border-dashed border-border text-muted-foreground hover:border-primary hover:text-foreground transition-all duration-200"
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">Recent:</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setRecentStyles([]);
+                              localStorage.removeItem("roc-recent-styles");
+                            }}
+                            className="text-xs text-muted-foreground hover:text-destructive transition-colors duration-150"
                           >
-                            <button
-                              type="button"
-                              onClick={() => applyCustomStyle(style)}
-                              className="leading-none"
+                            Clear all
+                          </button>
+                        </div>
+                        <div className="flex gap-1 flex-wrap">
+                          {recentStyles.map((style) => (
+                            <div
+                              key={style}
+                              className="group flex items-center gap-0.5 pl-2 pr-1 py-0.5 rounded-full text-xs border border-dashed border-border text-muted-foreground hover:border-primary hover:text-foreground transition-all duration-200"
                             >
-                              {style}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={(e) => removeRecentStyle(style, e)}
-                              className="ml-0.5 rounded-full p-0.5 opacity-0 group-hover:opacity-100 hover:bg-muted transition-all duration-150"
-                              aria-label={`Remove ${style}`}
-                            >
-                              <X className="h-2.5 w-2.5" />
-                            </button>
-                          </div>
-                        ))}
+                              <button
+                                type="button"
+                                onClick={() => applyCustomStyle(style)}
+                                className="leading-none"
+                              >
+                                {style}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => removeRecentStyle(style, e)}
+                                className="ml-0.5 rounded-full p-0.5 opacity-0 group-hover:opacity-100 hover:bg-muted transition-all duration-150"
+                                aria-label={`Remove ${style}`}
+                              >
+                                <X className="h-2.5 w-2.5" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
