@@ -30,7 +30,15 @@ export const ChatInputBox = ({
   const [input, setInput] = useState("");
   const [customStyle, setCustomStyle] = useState("");
   const [customStyleActive, setCustomStyleActive] = useState(false);
-  const [aspectRatio, setAspectRatio] = useState<string | null>(null);
+  const [aspectRatio, setAspectRatio] = useState<string | null>(
+    () => localStorage.getItem("roc-aspect-ratio")
+  );
+
+  const saveAspectRatio = (value: string | null) => {
+    setAspectRatio(value);
+    if (value) localStorage.setItem("roc-aspect-ratio", value);
+    else localStorage.removeItem("roc-aspect-ratio");
+  };
   const [attachments, setAttachments] = useState<FileAttachment[]>([]);
   const [recentStyles, setRecentStyles] = useState<string[]>(() => {
     try {
@@ -63,9 +71,7 @@ export const ChatInputBox = ({
   // Reset image-specific state when leaving image mode
   useEffect(() => {
     if (!isImageMode) {
-      setAspectRatio(null);
-      setCustomStyle("");
-      setCustomStyleActive(false);
+      saveAspectRatio(null);
     }
   }, [isImageMode]);
 
@@ -221,7 +227,7 @@ export const ChatInputBox = ({
       onSend(messageWithRatio, attachments.length > 0 ? attachments : undefined);
       setInput("");
       setAttachments([]);
-      setAspectRatio(null);
+      saveAspectRatio(null);
     }
   };
 
@@ -394,7 +400,7 @@ export const ChatInputBox = ({
                   <button
                     key={ratio.value}
                     type="button"
-                    onClick={() => setAspectRatio(aspectRatio === ratio.value ? null : ratio.value)}
+                    onClick={() => saveAspectRatio(aspectRatio === ratio.value ? null : ratio.value)}
                     className={`px-3 py-1 rounded-full text-xs font-medium border transition-all duration-200 ${
                       aspectRatio === ratio.value
                         ? "bg-secondary text-secondary-foreground border-secondary"
