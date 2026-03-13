@@ -33,6 +33,12 @@ export const ChatInputBox = ({
   const [aspectRatio, setAspectRatio] = useState<string | null>(
     () => localStorage.getItem("roc-aspect-ratio")
   );
+
+  const saveAspectRatio = (value: string | null) => {
+    setAspectRatio(value);
+    if (value) localStorage.setItem("roc-aspect-ratio", value);
+    else localStorage.removeItem("roc-aspect-ratio");
+  };
   const [attachments, setAttachments] = useState<FileAttachment[]>([]);
   const [recentStyles, setRecentStyles] = useState<string[]>(() => {
     try {
