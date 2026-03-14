@@ -41,8 +41,8 @@ export function useChatPersistence(userId: string | undefined) {
   const [isLoadingConversations, setIsLoadingConversations] = useState(true);
   const [mode, setMode] = useState<AIMode>("general");
   const [isEditingImage, setIsEditingImage] = useState(false);
-  // Flag to skip message reload when we just created a conversation inline
-  const [skipMessageReload, setSkipMessageReload] = useState(false);
+  // Use a ref (not state) so the skip flag is never subject to React batching race conditions
+  const skipMessageReloadRef = useRef(false);
 
   // Load conversations
   useEffect(() => {
