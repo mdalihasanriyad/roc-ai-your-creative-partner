@@ -283,7 +283,7 @@ export const ChatInputBox = ({
   };
 
   return (
-    <div className="p-4 border-t border-border">
+    <div className="p-2 sm:p-4 border-t border-border flex-shrink-0">
       <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
         <motion.div
           whileFocus={{ scale: 1.01 }}
