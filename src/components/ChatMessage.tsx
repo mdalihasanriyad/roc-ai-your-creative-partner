@@ -163,11 +163,11 @@ export const ChatMessage = ({
             {isUser && message.images && message.images.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-2">
                 {message.images.map((img, index) => (
-                  <img
+                <img
                     key={index}
                     src={img}
                     alt={`Attachment ${index + 1}`}
-                    className="max-w-[200px] max-h-[200px] rounded-lg object-cover"
+                    className="max-w-[140px] max-h-[140px] sm:max-w-[200px] sm:max-h-[200px] rounded-lg object-cover"
                   />
                 ))}
               </div>
