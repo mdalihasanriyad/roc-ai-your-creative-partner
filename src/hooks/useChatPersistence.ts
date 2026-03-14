@@ -194,11 +194,9 @@ export function useChatPersistence(userId: string | undefined) {
 
       // Create conversation if none exists
       if (!convId) {
-        // Set flag before creating so the useEffect won't wipe messages
-        setSkipMessageReload(true);
-        convId = await createConversation();
+        // Pass skipReset=true so createConversation doesn't wipe the messages state
+        convId = await createConversation(true);
         if (!convId) {
-          setSkipMessageReload(false);
           setIsLoading(false);
           return;
         }
