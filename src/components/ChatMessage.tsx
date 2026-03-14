@@ -103,11 +103,11 @@ export const ChatMessage = ({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className={`flex gap-4 ${isUser ? "flex-row-reverse" : ""}`}
+        className={`flex gap-2 sm:gap-4 ${isUser ? "flex-row-reverse" : ""}`}
       >
         {/* Avatar */}
         <div
-          className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${
+          className={`flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center ${
             isUser
               ? "bg-muted"
               : "bg-gradient-to-br from-primary to-secondary"
@@ -134,12 +134,12 @@ export const ChatMessage = ({
 
         {/* Message Content */}
         <div
-          className={`flex-1 max-w-[85%] md:max-w-[75%] ${
+          className={`flex-1 min-w-0 max-w-[88%] sm:max-w-[85%] md:max-w-[75%] ${
             isUser ? "text-right" : ""
           }`}
         >
           <div
-            className={`group relative inline-block rounded-2xl px-4 py-3 ${
+            className={`group relative inline-block rounded-2xl px-3 py-2 sm:px-4 sm:py-3 max-w-full ${
               isUser
                 ? "bg-gradient-to-r from-primary to-secondary text-primary-foreground"
                 : "glass-card"
@@ -163,11 +163,11 @@ export const ChatMessage = ({
             {isUser && message.images && message.images.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-2">
                 {message.images.map((img, index) => (
-                  <img
+                <img
                     key={index}
                     src={img}
                     alt={`Attachment ${index + 1}`}
-                    className="max-w-[200px] max-h-[200px] rounded-lg object-cover"
+                    className="max-w-[140px] max-h-[140px] sm:max-w-[200px] sm:max-h-[200px] rounded-lg object-cover"
                   />
                 ))}
               </div>
@@ -254,10 +254,10 @@ export const ChatMessage = ({
                           rel="noopener noreferrer"
                           className="block"
                         >
-                          <img
+                  <img
                             src={img}
                             alt={`Generated image ${index + 1}`}
-                            className="max-w-[400px] max-h-[400px] rounded-lg object-cover border border-border hover:opacity-90 transition-opacity cursor-pointer"
+                            className="max-w-full sm:max-w-[400px] max-h-[280px] sm:max-h-[400px] rounded-lg object-cover border border-border hover:opacity-90 transition-opacity cursor-pointer w-full"
                           />
                         </a>
                         {/* Image action buttons */}

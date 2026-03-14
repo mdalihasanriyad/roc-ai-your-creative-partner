@@ -63,11 +63,11 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col overflow-x-hidden">
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 border-b border-border">
+      <header className="flex items-center justify-between px-4 py-3 border-b border-border flex-shrink-0">
         <Link to="/" className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" className="gap-2">
+          <Button variant="ghost" size="sm" className="gap-2 h-8 text-sm">
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
@@ -75,25 +75,25 @@ const Auth = () => {
       </header>
 
       {/* Auth Form */}
-      <div className="flex-1 flex items-center justify-center p-4">
+      <div className="flex-1 flex items-center justify-center p-4 py-6 sm:py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-md"
+          className="w-full max-w-sm sm:max-w-md"
         >
-          <div className="text-center mb-8">
-            <RocLogo size="lg" className="mx-auto mb-4" />
-            <h1 className="font-display text-2xl font-bold mb-2">
+          <div className="text-center mb-6 sm:mb-8">
+            <RocLogo size="lg" className="mx-auto mb-3 sm:mb-4" />
+            <h1 className="font-display text-xl sm:text-2xl font-bold mb-2">
               {mode === "login" ? "Welcome back" : "Create an account"}
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               {mode === "login"
                 ? "Sign in to continue your conversations"
                 : "Sign up to save your chat history"}
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="glass-card rounded-2xl p-6 space-y-4">
+          <form onSubmit={handleSubmit} className="glass-card rounded-2xl p-5 sm:p-6 space-y-4">
             {mode === "signup" && (
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
@@ -148,7 +148,7 @@ const Auth = () => {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-primary to-secondary"
+              className="w-full bg-gradient-to-r from-primary to-secondary h-10"
             >
               {isLoading
                 ? "Loading..."
