@@ -444,7 +444,7 @@ export const ChatInputBox = ({
               </div>
             )}
 
-            <div className="flex items-end gap-2">
+            <div className="flex items-end gap-1 sm:gap-2">
               {hasMessages && (
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -453,9 +453,9 @@ export const ChatInputBox = ({
                       variant="ghost"
                       size="icon"
                       onClick={onClear}
-                      className="flex-shrink-0 text-muted-foreground hover:text-destructive"
+                      className="flex-shrink-0 h-8 w-8 sm:h-9 sm:w-9 text-muted-foreground hover:text-destructive"
                     >
-                      <Trash2 className="h-5 w-5" />
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Clear chat</TooltipContent>
