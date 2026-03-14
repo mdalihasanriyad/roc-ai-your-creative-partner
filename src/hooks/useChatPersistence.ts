@@ -122,8 +122,10 @@ export function useChatPersistence(userId: string | undefined) {
     }
 
     setConversations((prev) => [data, ...prev]);
-    // Only reset messages when NOT called from sendMessage (e.g. manual new chat)
-    if (!skipReset) {
+    if (skipReset) {
+      // Set ref BEFORE setCurrentConversationId so the useEffect reads it synchronously
+      skipMessageReloadRef.current = true;
+    } else {
       setMessages([]);
     }
     setCurrentConversationId(data.id);
