@@ -103,11 +103,11 @@ export const ChatMessage = ({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className={`flex gap-4 ${isUser ? "flex-row-reverse" : ""}`}
+        className={`flex gap-2 sm:gap-4 ${isUser ? "flex-row-reverse" : ""}`}
       >
         {/* Avatar */}
         <div
-          className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${
+          className={`flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center ${
             isUser
               ? "bg-muted"
               : "bg-gradient-to-br from-primary to-secondary"
