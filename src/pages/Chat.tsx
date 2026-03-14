@@ -101,35 +101,35 @@ const Chat = () => {
       />
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Header */}
-        <header className="flex items-center justify-between px-4 py-3 border-b border-border glass-card">
-          <div className="flex items-center gap-3">
+        <header className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-3 border-b border-border glass-card flex-shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setSidebarOpen(true)}
-              className="md:hidden"
+              className="md:hidden flex-shrink-0 h-8 w-8"
             >
-              <Menu className="h-5 w-5" />
+              <Menu className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="hidden md:flex gap-2"
+              className="hidden md:flex gap-2 flex-shrink-0"
             >
               <Menu className="h-4 w-4" />
               History
             </Button>
-            <Link to="/" className="flex items-center gap-2">
+            <Link to="/" className="flex items-center gap-1.5 min-w-0">
               <RocLogo size="sm" />
-              <span className="font-display font-bold text-lg gradient-text">
+              <span className="font-display font-bold text-sm sm:text-lg gradient-text truncate">
                 Roc AI
               </span>
             </Link>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             <ModeSelector mode={mode} onModeChange={setMode} />
             <ThemeToggle />
           </div>
