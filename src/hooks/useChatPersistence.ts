@@ -77,8 +77,8 @@ export function useChatPersistence(userId: string | undefined) {
     }
 
     // Skip reload if we just created this conversation inline during sendMessage
-    if (skipMessageReload) {
-      setSkipMessageReload(false);
+    if (skipMessageReloadRef.current) {
+      skipMessageReloadRef.current = false;
       return;
     }
 
@@ -104,7 +104,7 @@ export function useChatPersistence(userId: string | undefined) {
     };
 
     loadMessages();
-  }, [currentConversationId, skipMessageReload]);
+  }, [currentConversationId]);
 
   const createConversation = useCallback(async (skipReset = false) => {
     if (!userId) return null;
