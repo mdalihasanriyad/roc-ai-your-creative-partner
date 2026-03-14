@@ -297,7 +297,7 @@ export const ChatInputBox = ({
               className="flex flex-col gap-2 mb-2"
             >
               {/* Style row */}
-              <div className="flex gap-2 flex-wrap items-center">
+              <div className="flex gap-1.5 sm:gap-2 flex-wrap items-center">
                 {IMAGE_STYLE_PRESETS.map((preset) => {
                   const active = input.includes(preset.suffix);
                   return (
@@ -305,7 +305,7 @@ export const ChatInputBox = ({
                       key={preset.label}
                       type="button"
                       onClick={() => applyStylePreset(active ? "" : preset.suffix)}
-                      className={`px-3 py-1 rounded-full text-xs font-medium border transition-all duration-200 ${
+                      className={`px-2.5 py-1 sm:px-3 rounded-full text-xs font-medium border transition-all duration-200 ${
                         active
                           ? "bg-primary text-primary-foreground border-primary"
                           : "bg-muted/50 text-muted-foreground border-border hover:border-primary hover:text-foreground"
