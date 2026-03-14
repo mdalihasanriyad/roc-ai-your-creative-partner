@@ -254,10 +254,10 @@ export const ChatMessage = ({
                           rel="noopener noreferrer"
                           className="block"
                         >
-                          <img
+                  <img
                             src={img}
                             alt={`Generated image ${index + 1}`}
-                            className="max-w-[400px] max-h-[400px] rounded-lg object-cover border border-border hover:opacity-90 transition-opacity cursor-pointer"
+                            className="max-w-full sm:max-w-[400px] max-h-[280px] sm:max-h-[400px] rounded-lg object-cover border border-border hover:opacity-90 transition-opacity cursor-pointer w-full"
                           />
                         </a>
                         {/* Image action buttons */}
