@@ -134,12 +134,12 @@ export const ChatMessage = ({
 
         {/* Message Content */}
         <div
-          className={`flex-1 max-w-[85%] md:max-w-[75%] ${
+          className={`flex-1 min-w-0 max-w-[88%] sm:max-w-[85%] md:max-w-[75%] ${
             isUser ? "text-right" : ""
           }`}
         >
           <div
-            className={`group relative inline-block rounded-2xl px-4 py-3 ${
+            className={`group relative inline-block rounded-2xl px-3 py-2 sm:px-4 sm:py-3 max-w-full ${
               isUser
                 ? "bg-gradient-to-r from-primary to-secondary text-primary-foreground"
                 : "glass-card"
