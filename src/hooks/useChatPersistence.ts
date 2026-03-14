@@ -106,7 +106,7 @@ export function useChatPersistence(userId: string | undefined) {
     loadMessages();
   }, [currentConversationId, skipMessageReload]);
 
-  const createConversation = useCallback(async () => {
+  const createConversation = useCallback(async (skipReset = false) => {
     if (!userId) return null;
 
     const { data, error } = await supabase
@@ -122,8 +122,11 @@ export function useChatPersistence(userId: string | undefined) {
     }
 
     setConversations((prev) => [data, ...prev]);
+    // Only reset messages when NOT called from sendMessage (e.g. manual new chat)
+    if (!skipReset) {
+      setMessages([]);
+    }
     setCurrentConversationId(data.id);
-    setMessages([]);
     return data.id;
   }, [userId]);
 
