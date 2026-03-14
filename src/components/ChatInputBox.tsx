@@ -394,14 +394,14 @@ export const ChatInputBox = ({
               </div>
 
               {/* Aspect ratio row */}
-              <div className="flex gap-2 flex-wrap items-center">
+              <div className="flex gap-1.5 sm:gap-2 flex-wrap items-center">
                 <span className="text-xs text-muted-foreground">Ratio:</span>
                 {ASPECT_RATIOS.map((ratio) => (
                   <button
                     key={ratio.value}
                     type="button"
                     onClick={() => saveAspectRatio(aspectRatio === ratio.value ? null : ratio.value)}
-                    className={`px-3 py-1 rounded-full text-xs font-medium border transition-all duration-200 ${
+                    className={`px-2.5 py-1 sm:px-3 rounded-full text-xs font-medium border transition-all duration-200 ${
                       aspectRatio === ratio.value
                         ? "bg-secondary text-secondary-foreground border-secondary"
                         : "bg-muted/50 text-muted-foreground border-border hover:border-secondary hover:text-foreground"
