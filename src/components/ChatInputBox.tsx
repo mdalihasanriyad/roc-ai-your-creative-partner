@@ -478,9 +478,9 @@ export const ChatInputBox = ({
                     variant="ghost"
                     size="icon"
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex-shrink-0 text-muted-foreground hover:text-primary"
+                    className="flex-shrink-0 h-8 w-8 sm:h-9 sm:w-9 text-muted-foreground hover:text-primary"
                   >
-                    <Image className="h-5 w-5" />
+                    <Image className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>Attach image</TooltipContent>
@@ -494,13 +494,13 @@ export const ChatInputBox = ({
                     variant="ghost"
                     size="icon"
                     onClick={toggleVoiceInput}
-                    className={`flex-shrink-0 transition-colors ${
+                    className={`flex-shrink-0 h-8 w-8 sm:h-9 sm:w-9 transition-colors ${
                       isListening 
                         ? "text-destructive animate-pulse" 
                         : "text-muted-foreground hover:text-primary"
                     }`}
                   >
-                    {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                    {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -516,9 +516,9 @@ export const ChatInputBox = ({
                     variant="ghost"
                     size="icon"
                     onClick={handleGenerateImage}
-                    className="flex-shrink-0 text-muted-foreground hover:text-primary"
+                    className="flex-shrink-0 h-8 w-8 sm:h-9 sm:w-9 text-muted-foreground hover:text-primary"
                   >
-                    <Wand2 className="h-5 w-5" />
+                    <Wand2 className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -539,7 +539,7 @@ export const ChatInputBox = ({
                       : "Ask Roc anything..."
                 }
                 rows={1}
-                className={`flex-1 bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground text-base py-3 px-2 resize-none min-h-[48px] max-h-[200px] ${
+                className={`flex-1 bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground text-sm sm:text-base py-2 sm:py-3 px-2 resize-none min-h-[40px] sm:min-h-[48px] max-h-[160px] sm:max-h-[200px] ${
                   isListening ? "placeholder:animate-pulse" : ""
                 }`}
                 style={{
@@ -556,16 +556,16 @@ export const ChatInputBox = ({
               <Button
                 type="submit"
                 disabled={(!input.trim() && attachments.length === 0) || isLoading}
-                className="flex-shrink-0 bg-gradient-to-r from-primary to-secondary text-primary-foreground rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
+                className="flex-shrink-0 h-8 w-8 sm:h-9 sm:w-9 bg-gradient-to-r from-primary to-secondary text-primary-foreground rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
                 size="icon"
               >
-                <Send className={`h-5 w-5 ${isLoading ? "animate-pulse" : ""}`} />
+                <Send className={`h-4 w-4 ${isLoading ? "animate-pulse" : ""}`} />
               </Button>
             </div>
           </div>
         </motion.div>
 
-        <p className="text-center text-xs text-muted-foreground mt-3">
+        <p className="text-center text-xs text-muted-foreground mt-2 sm:mt-3">
           Roc AI may make mistakes. Please verify important information.
         </p>
       </form>
