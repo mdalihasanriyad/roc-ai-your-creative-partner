@@ -197,13 +197,13 @@ export const ConversationSidebar = ({
                           saveEdit(conv.id);
                         }}
                       >
-                        <Check className="h-3.5 w-3.5 text-green-500" />
+                        <Check className="h-3.5 w-3.5 text-primary" />
                       </Button>
                     ) : (
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="h-7 w-7 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
                         onClick={(e) => startEditing(conv, e)}
                       >
                         <Pencil className="h-3.5 w-3.5" />
@@ -212,7 +212,7 @@ export const ConversationSidebar = ({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="h-7 w-7 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
                       onClick={(e) => {
                         e.stopPropagation();
                         onDelete(conv.id);
