@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "./contexts/AuthContext";
 import { HelmetProvider } from "react-helmet-async";
-
+import { Analytics } from "@vercel/analytics/react";
 import Index from "./pages/Index";
 import Chat from "./pages/Chat";
 import Auth from "./pages/Auth";
@@ -20,6 +20,7 @@ const App = () => (
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
         <AuthProvider>
           <TooltipProvider>
+            <Analytics/>
             <Toaster />
             <Sonner />
 
