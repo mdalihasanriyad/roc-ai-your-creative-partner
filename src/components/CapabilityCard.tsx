@@ -33,7 +33,7 @@ export const CapabilityCard = ({
       />
       
       {/* Card */}
-      <div className="relative h-full glass-card rounded-2xl p-6 md:p-8 transition-all duration-300">
+      <div className="relative h-full glass-card rounded-2xl p-5 sm:p-6 md:p-8 transition-all duration-300">
         {/* Icon */}
         <div className={`inline-flex p-3 rounded-xl ${gradient} mb-6`}>
           <Icon className="h-6 w-6 text-primary-foreground" />

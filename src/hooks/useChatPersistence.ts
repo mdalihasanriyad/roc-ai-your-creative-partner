@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast as sonnerToast } from "sonner";
 import { Conversation } from "@/components/ConversationSidebar";
@@ -41,8 +41,8 @@ export function useChatPersistence(userId: string | undefined) {
   const [isLoadingConversations, setIsLoadingConversations] = useState(true);
   const [mode, setMode] = useState<AIMode>("general");
   const [isEditingImage, setIsEditingImage] = useState(false);
-  // Flag to skip message reload when we just created a conversation inline
-  const [skipMessageReload, setSkipMessageReload] = useState(false);
+  // Use a ref (not state) so the skip flag is never subject to React batching race conditions
+  const skipMessageReloadRef = useRef(false);
 
   // Load conversations
   useEffect(() => {
@@ -77,8 +77,8 @@ export function useChatPersistence(userId: string | undefined) {
     }
 
     // Skip reload if we just created this conversation inline during sendMessage
-    if (skipMessageReload) {
-      setSkipMessageReload(false);
+    if (skipMessageReloadRef.current) {
+      skipMessageReloadRef.current = false;
       return;
     }
 
@@ -104,9 +104,9 @@ export function useChatPersistence(userId: string | undefined) {
     };
 
     loadMessages();
-  }, [currentConversationId, skipMessageReload]);
+  }, [currentConversationId]);
 
-  const createConversation = useCallback(async () => {
+  const createConversation = useCallback(async (skipReset = false) => {
     if (!userId) return null;
 
     const { data, error } = await supabase
@@ -122,8 +122,13 @@ export function useChatPersistence(userId: string | undefined) {
     }
 
     setConversations((prev) => [data, ...prev]);
+    if (skipReset) {
+      // Set ref BEFORE setCurrentConversationId so the useEffect reads it synchronously
+      skipMessageReloadRef.current = true;
+    } else {
+      setMessages([]);
+    }
     setCurrentConversationId(data.id);
-    setMessages([]);
     return data.id;
   }, [userId]);
 
@@ -191,11 +196,9 @@ export function useChatPersistence(userId: string | undefined) {
 
       // Create conversation if none exists
       if (!convId) {
-        // Set flag before creating so the useEffect won't wipe messages
-        setSkipMessageReload(true);
-        convId = await createConversation();
+        // Pass skipReset=true so createConversation doesn't wipe the messages state
+        convId = await createConversation(true);
         if (!convId) {
-          setSkipMessageReload(false);
           setIsLoading(false);
           return;
         }

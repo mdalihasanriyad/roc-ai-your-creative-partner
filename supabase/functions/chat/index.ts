@@ -142,7 +142,7 @@ serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash-image",
+          model: "google/gemini-3-pro-image-preview",
           messages: [
             { role: "system", content: isEditRequest 
               ? "You are an image editing assistant. Apply the requested edits to the provided image. Maintain the original image's style while applying the modifications."
@@ -188,7 +188,7 @@ serve(async (req) => {
     }
 
     // Use vision-capable model if images are present
-    const model = hasImages ? "google/gemini-2.5-flash" : "google/gemini-3-flash-preview";
+    const model = hasImages ? "google/gemini-2.5-pro" : "google/gemini-3-flash-preview";
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

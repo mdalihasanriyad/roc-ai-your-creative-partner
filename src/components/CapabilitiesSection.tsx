@@ -55,29 +55,29 @@ const capabilities = [
 
 export const CapabilitiesSection = () => {
   return (
-    <section id="capabilities" className="relative py-24 px-4">
+    <section id="capabilities" className="relative py-16 sm:py-20 md:py-24 px-4">
       {/* Background */}
       <div className="absolute inset-0 mesh-gradient opacity-50" />
       
-      <div className="container mx-auto relative z-10">
+      <div className="container mx-auto relative z-10 max-w-5xl">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="text-center max-w-2xl mx-auto mb-16"
+          className="text-center max-w-2xl mx-auto mb-10 sm:mb-14 md:mb-16 px-2"
         >
-          <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
+          <h2 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 leading-tight">
             One AI, <span className="gradient-text">Endless Possibilities</span>
           </h2>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-sm sm:text-base md:text-lg text-muted-foreground">
             Roc AI adapts to your needs — whether you're writing, coding, creating, or researching.
           </p>
         </motion.div>
 
         {/* Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           {capabilities.map((capability, index) => (
             <CapabilityCard
               key={capability.title}

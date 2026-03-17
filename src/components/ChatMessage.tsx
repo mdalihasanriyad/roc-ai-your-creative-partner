@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import { Message } from "@/hooks/useChatPersistence";
-import { User, Copy, Check, Download, RefreshCw, Pencil } from "lucide-react";
+import { User, Copy, Check, Download, RefreshCw, Pencil, ImageIcon } from "lucide-react";
 import { format } from "date-fns";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { ImageEditDialog } from "./ImageEditDialog";
 import { ThinkingIndicator } from "./ThinkingIndicator";
@@ -28,9 +28,23 @@ export const ChatMessage = ({
 }: ChatMessageProps) => {
   const isUser = message.role === "user";
   const showTypingIndicator = isStreaming && !message.content;
+  const isGeneratingImage = (isStreaming || isEditingImage) && !message.generatedImages?.length && 
+    (message.content?.toLowerCase().includes("generat") || message.content?.toLowerCase().includes("creat") || message.content?.toLowerCase().includes("edit") || message.content === "");
   const [copied, setCopied] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedImageForEdit, setSelectedImageForEdit] = useState<string>("");
+  const [elapsed, setElapsed] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (isGeneratingImage) {
+      setElapsed(0);
+      timerRef.current = setInterval(() => setElapsed(s => s + 1), 1000);
+    } else {
+      if (timerRef.current) clearInterval(timerRef.current);
+    }
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [isGeneratingImage]);
 
   const formattedTime = timestamp 
     ? format(new Date(timestamp), "h:mm a")
@@ -89,11 +103,11 @@ export const ChatMessage = ({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className={`flex gap-4 ${isUser ? "flex-row-reverse" : ""}`}
+        className={`flex gap-2 sm:gap-4 ${isUser ? "flex-row-reverse" : ""}`}
       >
         {/* Avatar */}
         <div
-          className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${
+          className={`flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center ${
             isUser
               ? "bg-muted"
               : "bg-gradient-to-br from-primary to-secondary"
@@ -120,12 +134,12 @@ export const ChatMessage = ({
 
         {/* Message Content */}
         <div
-          className={`flex-1 max-w-[85%] md:max-w-[75%] ${
+          className={`flex-1 min-w-0 max-w-[88%] sm:max-w-[85%] md:max-w-[75%] ${
             isUser ? "text-right" : ""
           }`}
         >
           <div
-            className={`group relative inline-block rounded-2xl px-4 py-3 ${
+            className={`group relative inline-block rounded-2xl px-3 py-2 sm:px-4 sm:py-3 max-w-full ${
               isUser
                 ? "bg-gradient-to-r from-primary to-secondary text-primary-foreground"
                 : "glass-card"
@@ -139,7 +153,7 @@ export const ChatMessage = ({
                 title="Copy to clipboard"
               >
                 {copied ? (
-                  <Check className="w-3.5 h-3.5 text-green-500" />
+                  <Check className="w-3.5 h-3.5 text-primary" />
                 ) : (
                   <Copy className="w-3.5 h-3.5" />
                 )}
@@ -149,11 +163,11 @@ export const ChatMessage = ({
             {isUser && message.images && message.images.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-2">
                 {message.images.map((img, index) => (
-                  <img
+                <img
                     key={index}
                     src={img}
                     alt={`Attachment ${index + 1}`}
-                    className="max-w-[200px] max-h-[200px] rounded-lg object-cover"
+                    className="max-w-[140px] max-h-[140px] sm:max-w-[200px] sm:max-h-[200px] rounded-lg object-cover"
                   />
                 ))}
               </div>
@@ -196,6 +210,39 @@ export const ChatMessage = ({
                 >
                   {message.content || ""}
                 </ReactMarkdown>
+                {/* Image generation skeleton */}
+                {isGeneratingImage && (
+                  <div className="mt-3">
+                    <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground">
+                      <ImageIcon className="w-3.5 h-3.5 animate-pulse text-primary" />
+                      <span>Generating image… ~{elapsed}s</span>
+                    </div>
+                    <motion.div
+                      className="relative w-[300px] h-[300px] rounded-lg overflow-hidden border border-border"
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      {/* Shimmer base */}
+                      <div className="absolute inset-0 bg-muted" />
+                      {/* Shimmer sweep */}
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-muted-foreground/10 to-transparent"
+                        animate={{ x: ["-100%", "100%"] }}
+                        transition={{ repeat: Infinity, duration: 1.4, ease: "linear" }}
+                      />
+                      {/* Center icon */}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <motion.div
+                          animate={{ scale: [1, 1.1, 1], opacity: [0.4, 0.7, 0.4] }}
+                          transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                        >
+                          <ImageIcon className="w-10 h-10 text-muted-foreground/30" />
+                        </motion.div>
+                      </div>
+                    </motion.div>
+                  </div>
+                )}
                 {/* Generated images */}
                 {message.generatedImages && message.generatedImages.length > 0 && (
                   <div className="flex flex-wrap gap-3 mt-3">
@@ -207,10 +254,10 @@ export const ChatMessage = ({
                           rel="noopener noreferrer"
                           className="block"
                         >
-                          <img
+                  <img
                             src={img}
                             alt={`Generated image ${index + 1}`}
-                            className="max-w-[400px] max-h-[400px] rounded-lg object-cover border border-border hover:opacity-90 transition-opacity cursor-pointer"
+                            className="max-w-full sm:max-w-[400px] max-h-[280px] sm:max-h-[400px] rounded-lg object-cover border border-border hover:opacity-90 transition-opacity cursor-pointer w-full"
                           />
                         </a>
                         {/* Image action buttons */}

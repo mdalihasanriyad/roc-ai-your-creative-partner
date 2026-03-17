@@ -28,24 +28,114 @@ export const ChatInputBox = ({
   hasMessages,
 }: ChatInputBoxProps) => {
   const [input, setInput] = useState("");
+  const [customStyle, setCustomStyle] = useState("");
+  const [customStyleActive, setCustomStyleActive] = useState(false);
+  const [aspectRatio, setAspectRatio] = useState<string | null>(
+    () => localStorage.getItem("roc-aspect-ratio")
+  );
+
+  const saveAspectRatio = (value: string | null) => {
+    setAspectRatio(value);
+    if (value) localStorage.setItem("roc-aspect-ratio", value);
+    else localStorage.removeItem("roc-aspect-ratio");
+  };
   const [attachments, setAttachments] = useState<FileAttachment[]>([]);
+  const [recentStyles, setRecentStyles] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem("roc-recent-styles") || "[]");
+    } catch {
+      return [];
+    }
+  });
   const [isListening, setIsListening] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<any>(null);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  const IMAGE_STYLE_PRESETS = [
+    { label: "Photorealistic", suffix: ", photorealistic, ultra-detailed" },
+    { label: "Anime", suffix: ", anime style, vibrant" },
+    { label: "Watercolor", suffix: ", watercolor painting, soft strokes" },
+    { label: "Oil Painting", suffix: ", oil painting, textured canvas" },
+  ];
+
+  const ASPECT_RATIOS = [
+    { label: "Square 1:1", value: "1:1" },
+    { label: "Landscape 16:9", value: "16:9" },
+    { label: "Portrait 9:16", value: "9:16" },
+  ];
+
+  const isImageMode = input.toLowerCase().startsWith("generate an image of");
+
+  // Reset image-specific state when leaving image mode
+  useEffect(() => {
+    if (!isImageMode) {
+      saveAspectRatio(null);
+    }
+  }, [isImageMode]);
+
+  const applyStylePreset = (suffix: string) => {
+    let base = input;
+    // Remove all known preset suffixes
+    IMAGE_STYLE_PRESETS.forEach(p => { base = base.replace(p.suffix, ""); });
+    // Remove active custom style if any
+    if (customStyleActive && customStyle) {
+      base = base.replace(`, ${customStyle}`, "");
+    }
+    setCustomStyleActive(false);
+    setInput(base.trimEnd() + suffix);
+    textareaRef.current?.focus();
+  };
+
+  const applyCustomStyle = (styleOverride?: string) => {
+    const style = (styleOverride ?? customStyle).trim();
+    if (!style) return;
+    const suffix = `, ${style}`;
+    let base = input;
+    IMAGE_STYLE_PRESETS.forEach(p => { base = base.replace(p.suffix, ""); });
+    if (customStyleActive && customStyle) {
+      base = base.replace(`, ${customStyle}`, "");
+    }
+    // Save to recent styles
+    setRecentStyles(prev => {
+      const updated = [style, ...prev.filter(s => s !== style)].slice(0, 5);
+      localStorage.setItem("roc-recent-styles", JSON.stringify(updated));
+      return updated;
+    });
+    if (styleOverride) setCustomStyle(styleOverride);
+    setCustomStyleActive(true);
+    setInput(base.trimEnd() + suffix);
+    textareaRef.current?.focus();
+  };
+
+  const removeCustomStyle = () => {
+    if (customStyleActive && customStyle) {
+      setInput(prev => prev.replace(`, ${customStyle}`, ""));
+    }
+    setCustomStyleActive(false);
+    setCustomStyle("");
+  };
+
+  const removeRecentStyle = (style: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setRecentStyles(prev => {
+      const updated = prev.filter(s => s !== style);
+      localStorage.setItem("roc-recent-styles", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const handleGenerateImage = () => {
     const prefix = "Generate an image of ";
     setInput(prefix);
-    // Focus the textarea and place cursor at the end
-    setTimeout(() => {
+    // Focus the textarea and place cursor at the end of the prefix
+    requestAnimationFrame(() => {
       if (textareaRef.current) {
         textareaRef.current.focus();
         textareaRef.current.setSelectionRange(prefix.length, prefix.length);
       }
-    }, 0);
-    toast.info("Describe the image you want to create");
+    });
   };
 
   // Initialize speech recognition
@@ -130,9 +220,14 @@ export const ChatInputBox = ({
       setIsListening(false);
     }
     if ((input.trim() || attachments.length > 0) && !isLoading) {
-      onSend(input, attachments.length > 0 ? attachments : undefined);
+      const messageWithRatio =
+        isImageMode && aspectRatio
+          ? `${input.trimEnd()}, ${aspectRatio} aspect ratio`
+          : input;
+      onSend(messageWithRatio, attachments.length > 0 ? attachments : undefined);
       setInput("");
       setAttachments([]);
+      saveAspectRatio(null);
     }
   };
 
@@ -188,13 +283,138 @@ export const ChatInputBox = ({
   };
 
   return (
-    <div className="p-4 border-t border-border">
+    <div className="p-2 sm:p-4 border-t border-border flex-shrink-0">
       <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
         <motion.div
           whileFocus={{ scale: 1.01 }}
           className="relative"
         >
-          {/* Glow Effect */}
+      {/* Style Presets & Aspect Ratio */}
+          {isImageMode && (
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-col gap-2 mb-2"
+            >
+              {/* Style row */}
+              <div className="flex gap-1.5 sm:gap-2 flex-wrap items-center">
+                {IMAGE_STYLE_PRESETS.map((preset) => {
+                  const active = input.includes(preset.suffix);
+                  return (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      onClick={() => applyStylePreset(active ? "" : preset.suffix)}
+                      className={`px-2.5 py-1 sm:px-3 rounded-full text-xs font-medium border transition-all duration-200 ${
+                        active
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-muted/50 text-muted-foreground border-border hover:border-primary hover:text-foreground"
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  );
+                })}
+
+                {/* Custom style chip + input */}
+                {customStyleActive ? (
+                  <button
+                    type="button"
+                    onClick={removeCustomStyle}
+                    className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border bg-primary text-primary-foreground border-primary transition-all duration-200"
+                  >
+                    {customStyle}
+                    <X className="h-3 w-3" />
+                  </button>
+                ) : (
+                  <div className="flex flex-col gap-1">
+                    <form
+                      onSubmit={(e) => { e.preventDefault(); applyCustomStyle(); }}
+                      className="flex items-center gap-1"
+                    >
+                      <input
+                        type="text"
+                        value={customStyle}
+                        onChange={(e) => setCustomStyle(e.target.value)}
+                        placeholder="Custom style…"
+                        className="text-xs bg-muted/50 border border-border rounded-full px-3 py-1 w-28 outline-none focus:border-primary text-foreground placeholder:text-muted-foreground transition-colors"
+                      />
+                      {customStyle.trim() && (
+                        <button
+                          type="submit"
+                          className="px-2 py-1 rounded-full text-xs font-medium border border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-200"
+                        >
+                          Apply
+                        </button>
+                      )}
+                    </form>
+                    {recentStyles.length > 0 && (
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">Recent:</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setRecentStyles([]);
+                              localStorage.removeItem("roc-recent-styles");
+                            }}
+                            className="text-xs text-muted-foreground hover:text-destructive transition-colors duration-150"
+                          >
+                            Clear all
+                          </button>
+                        </div>
+                        <div className="flex gap-1 flex-wrap">
+                          {recentStyles.map((style) => (
+                            <div
+                              key={style}
+                              className="group flex items-center gap-0.5 pl-2 pr-1 py-0.5 rounded-full text-xs border border-dashed border-border text-muted-foreground hover:border-primary hover:text-foreground transition-all duration-200"
+                            >
+                              <button
+                                type="button"
+                                onClick={() => applyCustomStyle(style)}
+                                className="leading-none"
+                              >
+                                {style}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => removeRecentStyle(style, e)}
+                                className="ml-0.5 rounded-full p-0.5 opacity-0 group-hover:opacity-100 hover:bg-muted transition-all duration-150"
+                                aria-label={`Remove ${style}`}
+                              >
+                                <X className="h-2.5 w-2.5" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Aspect ratio row */}
+              <div className="flex gap-1.5 sm:gap-2 flex-wrap items-center">
+                <span className="text-xs text-muted-foreground">Ratio:</span>
+                {ASPECT_RATIOS.map((ratio) => (
+                  <button
+                    key={ratio.value}
+                    type="button"
+                    onClick={() => saveAspectRatio(aspectRatio === ratio.value ? null : ratio.value)}
+                    className={`px-2.5 py-1 sm:px-3 rounded-full text-xs font-medium border transition-all duration-200 ${
+                      aspectRatio === ratio.value
+                        ? "bg-secondary text-secondary-foreground border-secondary"
+                        : "bg-muted/50 text-muted-foreground border-border hover:border-secondary hover:text-foreground"
+                    }`}
+                  >
+                    {ratio.label}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+      {/* Glow Effect */}
           <div className="absolute -inset-1 bg-gradient-to-r from-primary to-secondary rounded-2xl opacity-10 blur-lg" />
 
           {/* Input Container */}
@@ -224,7 +444,7 @@ export const ChatInputBox = ({
               </div>
             )}
 
-            <div className="flex items-end gap-2">
+            <div className="flex items-end gap-1 sm:gap-2">
               {hasMessages && (
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -233,9 +453,9 @@ export const ChatInputBox = ({
                       variant="ghost"
                       size="icon"
                       onClick={onClear}
-                      className="flex-shrink-0 text-muted-foreground hover:text-destructive"
+                      className="flex-shrink-0 h-8 w-8 sm:h-9 sm:w-9 text-muted-foreground hover:text-destructive"
                     >
-                      <Trash2 className="h-5 w-5" />
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Clear chat</TooltipContent>
@@ -258,9 +478,9 @@ export const ChatInputBox = ({
                     variant="ghost"
                     size="icon"
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex-shrink-0 text-muted-foreground hover:text-primary"
+                    className="flex-shrink-0 h-8 w-8 sm:h-9 sm:w-9 text-muted-foreground hover:text-primary"
                   >
-                    <Image className="h-5 w-5" />
+                    <Image className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>Attach image</TooltipContent>
@@ -274,13 +494,13 @@ export const ChatInputBox = ({
                     variant="ghost"
                     size="icon"
                     onClick={toggleVoiceInput}
-                    className={`flex-shrink-0 transition-colors ${
+                    className={`flex-shrink-0 h-8 w-8 sm:h-9 sm:w-9 transition-colors ${
                       isListening 
                         ? "text-destructive animate-pulse" 
                         : "text-muted-foreground hover:text-primary"
                     }`}
                   >
-                    {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                    {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -296,9 +516,9 @@ export const ChatInputBox = ({
                     variant="ghost"
                     size="icon"
                     onClick={handleGenerateImage}
-                    className="flex-shrink-0 text-muted-foreground hover:text-primary"
+                    className="flex-shrink-0 h-8 w-8 sm:h-9 sm:w-9 text-muted-foreground hover:text-primary"
                   >
-                    <Wand2 className="h-5 w-5" />
+                    <Wand2 className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -319,7 +539,7 @@ export const ChatInputBox = ({
                       : "Ask Roc anything..."
                 }
                 rows={1}
-                className={`flex-1 bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground text-base py-3 px-2 resize-none min-h-[48px] max-h-[200px] ${
+                className={`flex-1 bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground text-sm sm:text-base py-2 sm:py-3 px-2 resize-none min-h-[40px] sm:min-h-[48px] max-h-[160px] sm:max-h-[200px] ${
                   isListening ? "placeholder:animate-pulse" : ""
                 }`}
                 style={{
@@ -336,16 +556,16 @@ export const ChatInputBox = ({
               <Button
                 type="submit"
                 disabled={(!input.trim() && attachments.length === 0) || isLoading}
-                className="flex-shrink-0 bg-gradient-to-r from-primary to-secondary text-primary-foreground rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
+                className="flex-shrink-0 h-8 w-8 sm:h-9 sm:w-9 bg-gradient-to-r from-primary to-secondary text-primary-foreground rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
                 size="icon"
               >
-                <Send className={`h-5 w-5 ${isLoading ? "animate-pulse" : ""}`} />
+                <Send className={`h-4 w-4 ${isLoading ? "animate-pulse" : ""}`} />
               </Button>
             </div>
           </div>
         </motion.div>
 
-        <p className="text-center text-xs text-muted-foreground mt-3">
+        <p className="text-center text-xs text-muted-foreground mt-2 sm:mt-3">
           Roc AI may make mistakes. Please verify important information.
         </p>
       </form>
