@@ -49,7 +49,7 @@ export const Footer = () => {
         {/* Bottom */}
         <div className="mt-8 sm:mt-10 pt-6 sm:pt-8 border-t border-border text-center">
           <p className="text-xs sm:text-sm text-muted-foreground flex items-center justify-center gap-1">
-            Made with <Heart className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-500 fill-red-500" /> by the Roc AI Team
+            Made with <Heart className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-500 fill-red-500" /> by the Roc AI Team Leader AH Riyad
           </p>
         </div>
       </div>
