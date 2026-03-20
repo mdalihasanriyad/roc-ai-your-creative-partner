@@ -1,4 +1,4 @@
-# Welcome to your AI project
+# Welcome to your Roc AI project
 
 ## Project info
 
