@@ -9,7 +9,7 @@ There are several ways of editing your application.
 **Use AI**
 
 
-Changes made via AI will be committed automatically to this repo.
+Changes made to dev AH Riyad and AI will be automatically committed to this repository.
 
 **Use your preferred IDE**
 
