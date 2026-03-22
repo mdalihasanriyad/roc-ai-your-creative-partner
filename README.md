@@ -1,6 +1,6 @@
 # Welcome to My Roc AI project
 
-## Project info
+## Project Details
 
 ## How can I edit this code?
 
