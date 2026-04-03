@@ -66,7 +66,8 @@ Guidelines:
 - Use headings, bullet points, and tables for clarity
 - Cite sources and acknowledge limitations
 - Present multiple perspectives when relevant
-- Summarize key findings at the end`,
+- Summarize key findings at the end
+- IMPORTANT: At the very end of EVERY response, add a line with exactly "---SUGGESTIONS---" followed by 3-5 short follow-up suggestions (5-10 words each), one per line. Make them specific to the research topic discussed.`,
 };
 
 // Detect if user is asking for image editing
