@@ -17,6 +17,7 @@ interface ChatMessageProps {
   onRegenerateImage?: (prompt: string) => void;
   onEditImage?: (imageUrl: string, instruction: string) => void;
   isEditingImage?: boolean;
+  onSuggestionClick?: (suggestion: string) => void;
 }
 
 export const ChatMessage = ({ 
