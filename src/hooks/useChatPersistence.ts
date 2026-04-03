@@ -19,7 +19,25 @@ export type Message = {
   timestamp?: string;
   images?: string[]; // base64 image data for user uploads
   generatedImages?: string[]; // base64 image data for AI generated images
+  suggestions?: string[]; // follow-up suggestion chips
 };
+
+const SUGGESTIONS_DELIMITER = "---SUGGESTIONS---";
+
+// Parse suggestions from the end of assistant content
+function parseSuggestions(content: string): { cleanContent: string; suggestions: string[] } {
+  const delimiterIndex = content.indexOf(SUGGESTIONS_DELIMITER);
+  if (delimiterIndex === -1) return { cleanContent: content, suggestions: [] };
+  
+  const cleanContent = content.slice(0, delimiterIndex).trim();
+  const suggestionsText = content.slice(delimiterIndex + SUGGESTIONS_DELIMITER.length).trim();
+  const suggestions = suggestionsText
+    .split("\n")
+    .map((s) => s.replace(/^[-•*\d.)\s]+/, "").trim())
+    .filter((s) => s.length > 0 && s.length < 80);
+  
+  return { cleanContent, suggestions: suggestions.slice(0, 5) };
+}
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 
