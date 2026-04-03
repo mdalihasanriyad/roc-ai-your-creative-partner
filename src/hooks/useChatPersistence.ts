@@ -412,6 +412,17 @@ export function useChatPersistence(userId: string | undefined) {
           }
         }
 
+        // Parse suggestions from completed response
+        if (assistantContent) {
+          const { cleanContent, suggestions } = parseSuggestions(assistantContent);
+          assistantContent = cleanContent;
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === assistantId ? { ...m, content: cleanContent, suggestions } : m
+            )
+          );
+        }
+
         // Save assistant message to DB
         if (assistantContent) {
           await supabase.from("messages").insert({
