@@ -310,6 +310,26 @@ export const ChatMessage = ({
               </div>
             )}
           </div>
+          {/* Follow-up Suggestions */}
+          {!isUser && !isStreaming && message.suggestions && message.suggestions.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {message.suggestions.map((suggestion, index) => (
+                <motion.button
+                  key={index}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => onSuggestionClick?.(suggestion)}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border border-border bg-background/50 hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Sparkles className="h-2.5 w-2.5 text-primary flex-shrink-0" />
+                  <span className="line-clamp-1">{suggestion}</span>
+                </motion.button>
+              ))}
+            </div>
+          )}
           {/* Timestamp */}
           <p className={`text-xs text-muted-foreground mt-1 ${isUser ? "text-right" : "text-left"}`}>
             {formattedTime}
