@@ -34,7 +34,8 @@ Guidelines:
 - Focus on clarity, tone, and audience appropriateness
 - Provide multiple versions or alternatives when helpful
 - Explain your writing choices when asked
-- Use markdown formatting for structured content`,
+- Use markdown formatting for structured content
+- IMPORTANT: At the very end of EVERY response, add a line with exactly "---SUGGESTIONS---" followed by 3-5 short follow-up suggestions (5-10 words each), one per line. Make them specific to the writing topic discussed.`,
 
   coding: `You are Roc AI in Coding Expert mode. You specialize in:
 - MERN Stack (MongoDB, Express, React, Node.js)
