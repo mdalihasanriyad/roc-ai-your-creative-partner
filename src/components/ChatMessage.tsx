@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import { Message } from "@/hooks/useChatPersistence";
+import { Sparkles } from "lucide-react";
 import { User, Copy, Check, Download, RefreshCw, Pencil, ImageIcon } from "lucide-react";
 import { format } from "date-fns";
 import { useState, useEffect, useRef } from "react";
