@@ -27,6 +27,7 @@ export const ChatMessage = ({
   onRegenerateImage,
   onEditImage,
   isEditingImage,
+  onSuggestionClick,
 }: ChatMessageProps) => {
   const isUser = message.role === "user";
   const showTypingIndicator = isStreaming && !message.content;
