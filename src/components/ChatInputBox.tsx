@@ -1,6 +1,6 @@
 import { useState, FormEvent, KeyboardEvent, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Send, Trash2, X, Image, Mic, MicOff, Wand2 } from "lucide-react";
+import { Send, X, Image, Mic, MicOff, Wand2, Plus } from "lucide-react";
 import { Button } from "./ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { toast } from "sonner";
@@ -18,7 +18,6 @@ interface ChatInputBoxProps {
   hasMessages: boolean;
 }
 
-// Check for Web Speech API support
 const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
 export const ChatInputBox = ({
@@ -50,7 +49,6 @@ export const ChatInputBox = ({
   const [isListening, setIsListening] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<any>(null);
-
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const IMAGE_STYLE_PRESETS = [
@@ -61,14 +59,13 @@ export const ChatInputBox = ({
   ];
 
   const ASPECT_RATIOS = [
-    { label: "Square 1:1", value: "1:1" },
-    { label: "Landscape 16:9", value: "16:9" },
-    { label: "Portrait 9:16", value: "9:16" },
+    { label: "1:1", value: "1:1" },
+    { label: "16:9", value: "16:9" },
+    { label: "9:16", value: "9:16" },
   ];
 
   const isImageMode = input.toLowerCase().startsWith("generate an image of");
 
-  // Reset image-specific state when leaving image mode
   useEffect(() => {
     if (!isImageMode) {
       saveAspectRatio(null);
@@ -77,9 +74,7 @@ export const ChatInputBox = ({
 
   const applyStylePreset = (suffix: string) => {
     let base = input;
-    // Remove all known preset suffixes
     IMAGE_STYLE_PRESETS.forEach(p => { base = base.replace(p.suffix, ""); });
-    // Remove active custom style if any
     if (customStyleActive && customStyle) {
       base = base.replace(`, ${customStyle}`, "");
     }
@@ -97,7 +92,6 @@ export const ChatInputBox = ({
     if (customStyleActive && customStyle) {
       base = base.replace(`, ${customStyle}`, "");
     }
-    // Save to recent styles
     setRecentStyles(prev => {
       const updated = [style, ...prev.filter(s => s !== style)].slice(0, 5);
       localStorage.setItem("roc-recent-styles", JSON.stringify(updated));
@@ -129,7 +123,6 @@ export const ChatInputBox = ({
   const handleGenerateImage = () => {
     const prefix = "Generate an image of ";
     setInput(prefix);
-    // Focus the textarea and place cursor at the end of the prefix
     requestAnimationFrame(() => {
       if (textareaRef.current) {
         textareaRef.current.focus();
@@ -138,10 +131,8 @@ export const ChatInputBox = ({
     });
   };
 
-  // Initialize speech recognition
   useEffect(() => {
     if (!SpeechRecognition) return;
-
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
@@ -149,17 +140,12 @@ export const ChatInputBox = ({
 
     recognition.onresult = (event: any) => {
       let finalTranscript = '';
-      let interimTranscript = '';
-
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript;
         if (event.results[i].isFinal) {
           finalTranscript += transcript;
-        } else {
-          interimTranscript += transcript;
         }
       }
-
       if (finalTranscript) {
         setInput(prev => prev + finalTranscript);
       }
@@ -168,37 +154,28 @@ export const ChatInputBox = ({
     recognition.onerror = (event: any) => {
       console.error('Speech recognition error:', event.error);
       if (event.error === 'not-allowed') {
-        toast.error('Microphone access denied. Please enable it in your browser settings.');
+        toast.error('Microphone access denied.');
       } else if (event.error !== 'aborted') {
-        toast.error('Voice recognition error. Please try again.');
+        toast.error('Voice recognition error.');
       }
       setIsListening(false);
     };
 
     recognition.onend = () => {
       if (isListening) {
-        // Restart if still supposed to be listening
-        try {
-          recognition.start();
-        } catch (e) {
-          setIsListening(false);
-        }
+        try { recognition.start(); } catch { setIsListening(false); }
       }
     };
 
     recognitionRef.current = recognition;
-
-    return () => {
-      recognition.stop();
-    };
+    return () => { recognition.stop(); };
   }, [isListening]);
 
   const toggleVoiceInput = () => {
     if (!SpeechRecognition) {
-      toast.error('Voice input is not supported in your browser. Try Chrome or Edge.');
+      toast.error('Voice input not supported. Try Chrome or Edge.');
       return;
     }
-
     if (isListening) {
       recognitionRef.current?.stop();
       setIsListening(false);
@@ -206,8 +183,8 @@ export const ChatInputBox = ({
       try {
         recognitionRef.current?.start();
         setIsListening(true);
-        toast.success('Listening... Speak now');
-      } catch (e) {
+        toast.success('Listening…');
+      } catch {
         toast.error('Could not start voice recognition');
       }
     }
@@ -232,19 +209,16 @@ export const ChatInputBox = ({
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    // Ctrl+Enter or Cmd+Enter to send
     if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
       handleSubmit(e);
       return;
     }
-    // Enter without shift to send
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
       return;
     }
-    // Escape to clear input
     if (e.key === "Escape") {
       e.preventDefault();
       setInput("");
@@ -259,17 +233,14 @@ export const ChatInputBox = ({
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
-
     const newAttachments: FileAttachment[] = [];
-    
     Array.from(files).forEach((file) => {
       if (file.type.startsWith("image/")) {
         const preview = URL.createObjectURL(file);
         newAttachments.push({ file, preview, type: "image" });
       }
     });
-
-    setAttachments((prev) => [...prev, ...newAttachments].slice(0, 4)); // Max 4 files
+    setAttachments((prev) => [...prev, ...newAttachments].slice(0, 4));
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -283,186 +254,181 @@ export const ChatInputBox = ({
   };
 
   return (
-    <div className="p-2 sm:p-4 border-t border-border flex-shrink-0">
-      <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
-        <motion.div
-          whileFocus={{ scale: 1.01 }}
-          className="relative"
-        >
-      {/* Style Presets & Aspect Ratio */}
-          {isImageMode && (
-            <motion.div
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex flex-col gap-2 mb-2"
-            >
-              {/* Style row */}
-              <div className="flex gap-1.5 sm:gap-2 flex-wrap items-center">
-                {IMAGE_STYLE_PRESETS.map((preset) => {
-                  const active = input.includes(preset.suffix);
-                  return (
-                    <button
-                      key={preset.label}
-                      type="button"
-                      onClick={() => applyStylePreset(active ? "" : preset.suffix)}
-                      className={`px-2.5 py-1 sm:px-3 rounded-full text-xs font-medium border transition-all duration-200 ${
-                        active
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-muted/50 text-muted-foreground border-border hover:border-primary hover:text-foreground"
-                      }`}
-                    >
-                      {preset.label}
-                    </button>
-                  );
-                })}
-
-                {/* Custom style chip + input */}
-                {customStyleActive ? (
+    <div className="flex-shrink-0 pb-3 pt-2 px-3 sm:px-4">
+      <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
+        {/* Image mode options */}
+        {isImageMode && (
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col gap-2 mb-2"
+          >
+            <div className="flex gap-1.5 flex-wrap items-center">
+              {IMAGE_STYLE_PRESETS.map((preset) => {
+                const active = input.includes(preset.suffix);
+                return (
                   <button
+                    key={preset.label}
                     type="button"
-                    onClick={removeCustomStyle}
-                    className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border bg-primary text-primary-foreground border-primary transition-all duration-200"
-                  >
-                    {customStyle}
-                    <X className="h-3 w-3" />
-                  </button>
-                ) : (
-                  <div className="flex flex-col gap-1">
-                    <form
-                      onSubmit={(e) => { e.preventDefault(); applyCustomStyle(); }}
-                      className="flex items-center gap-1"
-                    >
-                      <input
-                        type="text"
-                        value={customStyle}
-                        onChange={(e) => setCustomStyle(e.target.value)}
-                        placeholder="Custom style…"
-                        className="text-xs bg-muted/50 border border-border rounded-full px-3 py-1 w-28 outline-none focus:border-primary text-foreground placeholder:text-muted-foreground transition-colors"
-                      />
-                      {customStyle.trim() && (
-                        <button
-                          type="submit"
-                          className="px-2 py-1 rounded-full text-xs font-medium border border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-200"
-                        >
-                          Apply
-                        </button>
-                      )}
-                    </form>
-                    {recentStyles.length > 0 && (
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-muted-foreground">Recent:</span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setRecentStyles([]);
-                              localStorage.removeItem("roc-recent-styles");
-                            }}
-                            className="text-xs text-muted-foreground hover:text-destructive transition-colors duration-150"
-                          >
-                            Clear all
-                          </button>
-                        </div>
-                        <div className="flex gap-1 flex-wrap">
-                          {recentStyles.map((style) => (
-                            <div
-                              key={style}
-                              className="group flex items-center gap-0.5 pl-2 pr-1 py-0.5 rounded-full text-xs border border-dashed border-border text-muted-foreground hover:border-primary hover:text-foreground transition-all duration-200"
-                            >
-                              <button
-                                type="button"
-                                onClick={() => applyCustomStyle(style)}
-                                className="leading-none"
-                              >
-                                {style}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={(e) => removeRecentStyle(style, e)}
-                                className="ml-0.5 rounded-full p-0.5 opacity-0 group-hover:opacity-100 hover:bg-muted transition-all duration-150"
-                                aria-label={`Remove ${style}`}
-                              >
-                                <X className="h-2.5 w-2.5" />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Aspect ratio row */}
-              <div className="flex gap-1.5 sm:gap-2 flex-wrap items-center">
-                <span className="text-xs text-muted-foreground">Ratio:</span>
-                {ASPECT_RATIOS.map((ratio) => (
-                  <button
-                    key={ratio.value}
-                    type="button"
-                    onClick={() => saveAspectRatio(aspectRatio === ratio.value ? null : ratio.value)}
-                    className={`px-2.5 py-1 sm:px-3 rounded-full text-xs font-medium border transition-all duration-200 ${
-                      aspectRatio === ratio.value
-                        ? "bg-secondary text-secondary-foreground border-secondary"
-                        : "bg-muted/50 text-muted-foreground border-border hover:border-secondary hover:text-foreground"
+                    onClick={() => applyStylePreset(active ? "" : preset.suffix)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
+                      active
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-muted/50 text-muted-foreground border-border hover:border-primary/50 hover:text-foreground"
                     }`}
                   >
-                    {ratio.label}
+                    {preset.label}
                   </button>
-                ))}
-              </div>
-            </motion.div>
+                );
+              })}
+
+              {customStyleActive ? (
+                <button
+                  type="button"
+                  onClick={removeCustomStyle}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium border bg-primary text-primary-foreground border-primary"
+                >
+                  {customStyle}
+                  <X className="h-3 w-3" />
+                </button>
+              ) : (
+                <div className="flex flex-col gap-1">
+                  <form
+                    onSubmit={(e) => { e.preventDefault(); applyCustomStyle(); }}
+                    className="flex items-center gap-1"
+                  >
+                    <input
+                      type="text"
+                      value={customStyle}
+                      onChange={(e) => setCustomStyle(e.target.value)}
+                      placeholder="Custom style…"
+                      className="text-xs bg-muted/50 border border-border rounded-lg px-2.5 py-1 w-28 outline-none focus:border-primary/50 text-foreground placeholder:text-muted-foreground transition-colors"
+                    />
+                    {customStyle.trim() && (
+                      <button
+                        type="submit"
+                        className="px-2 py-1 rounded-lg text-xs font-medium border border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground transition-all"
+                      >
+                        Apply
+                      </button>
+                    )}
+                  </form>
+                  {recentStyles.length > 0 && (
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">Recent:</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setRecentStyles([]);
+                            localStorage.removeItem("roc-recent-styles");
+                          }}
+                          className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+                        >
+                          Clear
+                        </button>
+                      </div>
+                      <div className="flex gap-1 flex-wrap">
+                        {recentStyles.map((style) => (
+                          <div
+                            key={style}
+                            className="group flex items-center gap-0.5 pl-2 pr-1 py-0.5 rounded-lg text-xs border border-dashed border-border text-muted-foreground hover:border-primary/50 hover:text-foreground transition-all"
+                          >
+                            <button type="button" onClick={() => applyCustomStyle(style)} className="leading-none">
+                              {style}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => removeRecentStyle(style, e)}
+                              className="ml-0.5 rounded-full p-0.5 opacity-0 group-hover:opacity-100 hover:bg-muted transition-all"
+                            >
+                              <X className="h-2.5 w-2.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-1.5 flex-wrap items-center">
+              <span className="text-xs text-muted-foreground">Ratio:</span>
+              {ASPECT_RATIOS.map((ratio) => (
+                <button
+                  key={ratio.value}
+                  type="button"
+                  onClick={() => saveAspectRatio(aspectRatio === ratio.value ? null : ratio.value)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
+                    aspectRatio === ratio.value
+                      ? "bg-secondary text-secondary-foreground border-secondary"
+                      : "bg-muted/50 text-muted-foreground border-border hover:border-secondary/50 hover:text-foreground"
+                  }`}
+                >
+                  {ratio.label}
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Main input container - ChatGPT style */}
+        <div className="relative rounded-2xl border border-border bg-card shadow-sm focus-within:border-border focus-within:ring-1 focus-within:ring-ring/20 transition-all">
+          {/* File Previews */}
+          {attachments.length > 0 && (
+            <div className="flex gap-2 px-3 pt-3 flex-wrap">
+              {attachments.map((attachment, index) => (
+                <div
+                  key={index}
+                  className="relative group w-14 h-14 rounded-lg overflow-hidden border border-border"
+                >
+                  <img
+                    src={attachment.preview}
+                    alt={`Attachment ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeAttachment(index)}
+                    className="absolute top-0.5 right-0.5 p-0.5 rounded-full bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
           )}
 
-      {/* Glow Effect */}
-          <div className="absolute -inset-1 bg-gradient-to-r from-primary to-secondary rounded-2xl opacity-10 blur-lg" />
+          {/* Textarea */}
+          <textarea
+            ref={textareaRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={
+              isListening
+                ? "Listening… speak now"
+                : "Message Roc AI…"
+            }
+            rows={1}
+            className={`w-full bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground text-sm sm:text-base py-3 px-4 resize-none min-h-[48px] max-h-[200px] ${
+              isListening ? "placeholder:animate-pulse" : ""
+            }`}
+            style={{
+              height: "auto",
+              overflow: input.split("\n").length > 5 ? "auto" : "hidden",
+            }}
+            onInput={(e) => {
+              const target = e.target as HTMLTextAreaElement;
+              target.style.height = "auto";
+              target.style.height = Math.min(target.scrollHeight, 200) + "px";
+            }}
+          />
 
-          {/* Input Container */}
-          <div className="relative glass-card rounded-2xl p-2">
-            {/* File Previews */}
-            {attachments.length > 0 && (
-              <div className="flex gap-2 p-2 pb-0 flex-wrap">
-                {attachments.map((attachment, index) => (
-                  <div
-                    key={index}
-                    className="relative group w-16 h-16 rounded-lg overflow-hidden border border-border"
-                  >
-                    <img
-                      src={attachment.preview}
-                      alt={`Attachment ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeAttachment(index)}
-                      className="absolute top-0.5 right-0.5 p-0.5 rounded-full bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="flex items-end gap-1 sm:gap-2">
-              {hasMessages && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={onClear}
-                      className="flex-shrink-0 h-8 w-8 sm:h-9 sm:w-9 text-muted-foreground hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Clear chat</TooltipContent>
-                </Tooltip>
-              )}
-
-              {/* File Upload Button */}
+          {/* Bottom toolbar */}
+          <div className="flex items-center justify-between px-3 pb-2.5">
+            <div className="flex items-center gap-0.5">
               <input
                 ref={fileInputRef}
                 type="file"
@@ -478,15 +444,29 @@ export const ChatInputBox = ({
                     variant="ghost"
                     size="icon"
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex-shrink-0 h-8 w-8 sm:h-9 sm:w-9 text-muted-foreground hover:text-primary"
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground rounded-lg"
                   >
-                    <Image className="h-4 w-4" />
+                    <Plus className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Attach image</TooltipContent>
+                <TooltipContent>Attach file</TooltipContent>
               </Tooltip>
 
-              {/* Voice Input Button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleGenerateImage}
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground rounded-lg"
+                  >
+                    <Wand2 className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Generate image</TooltipContent>
+              </Tooltip>
+
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -494,10 +474,10 @@ export const ChatInputBox = ({
                     variant="ghost"
                     size="icon"
                     onClick={toggleVoiceInput}
-                    className={`flex-shrink-0 h-8 w-8 sm:h-9 sm:w-9 transition-colors ${
-                      isListening 
-                        ? "text-destructive animate-pulse" 
-                        : "text-muted-foreground hover:text-primary"
+                    className={`h-8 w-8 rounded-lg transition-colors ${
+                      isListening
+                        ? "text-destructive animate-pulse"
+                        : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
                     {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
@@ -507,65 +487,20 @@ export const ChatInputBox = ({
                   {isListening ? "Stop listening" : "Voice input"}
                 </TooltipContent>
               </Tooltip>
-
-              {/* Generate Image Button */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleGenerateImage}
-                    className="flex-shrink-0 h-8 w-8 sm:h-9 sm:w-9 text-muted-foreground hover:text-primary"
-                  >
-                    <Wand2 className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  Generate image with AI
-                </TooltipContent>
-              </Tooltip>
-
-              <textarea
-                ref={textareaRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder={
-                  isListening 
-                    ? "Listening... speak now" 
-                    : attachments.length > 0 
-                      ? "Add a message or send..." 
-                      : "Ask Roc anything..."
-                }
-                rows={1}
-                className={`flex-1 bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground text-sm sm:text-base py-2 sm:py-3 px-2 resize-none min-h-[40px] sm:min-h-[48px] max-h-[160px] sm:max-h-[200px] ${
-                  isListening ? "placeholder:animate-pulse" : ""
-                }`}
-                style={{
-                  height: "auto",
-                  overflow: input.split("\n").length > 5 ? "auto" : "hidden",
-                }}
-                onInput={(e) => {
-                  const target = e.target as HTMLTextAreaElement;
-                  target.style.height = "auto";
-                  target.style.height = Math.min(target.scrollHeight, 200) + "px";
-                }}
-              />
-
-              <Button
-                type="submit"
-                disabled={(!input.trim() && attachments.length === 0) || isLoading}
-                className="flex-shrink-0 h-8 w-8 sm:h-9 sm:w-9 bg-gradient-to-r from-primary to-secondary text-primary-foreground rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
-                size="icon"
-              >
-                <Send className={`h-4 w-4 ${isLoading ? "animate-pulse" : ""}`} />
-              </Button>
             </div>
-          </div>
-        </motion.div>
 
-        <p className="text-center text-xs text-muted-foreground mt-2 sm:mt-3">
+            <Button
+              type="submit"
+              disabled={(!input.trim() && attachments.length === 0) || isLoading}
+              className="h-8 w-8 rounded-lg bg-foreground text-background hover:bg-foreground/90 disabled:opacity-30 transition-all"
+              size="icon"
+            >
+              <Send className={`h-4 w-4 ${isLoading ? "animate-pulse" : ""}`} />
+            </Button>
+          </div>
+        </div>
+
+        <p className="text-center text-xs text-muted-foreground mt-2">
           Roc AI may make mistakes. Please verify important information.
         </p>
       </form>

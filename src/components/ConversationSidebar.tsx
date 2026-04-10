@@ -70,11 +70,8 @@ export const ConversationSidebar = ({
   };
 
   const handleEditKeyDown = (e: React.KeyboardEvent, id: string) => {
-    if (e.key === "Enter") {
-      saveEdit(id);
-    } else if (e.key === "Escape") {
-      setEditingId(null);
-    }
+    if (e.key === "Enter") saveEdit(id);
+    else if (e.key === "Escape") setEditingId(null);
   };
 
   const formatDate = (dateString: string) => {
@@ -82,10 +79,9 @@ export const ConversationSidebar = ({
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
     if (days === 0) return "Today";
     if (days === 1) return "Yesterday";
-    if (days < 7) return `${days} days ago`;
+    if (days < 7) return `${days}d ago`;
     return date.toLocaleDateString();
   };
 
@@ -94,76 +90,74 @@ export const ConversationSidebar = ({
       {/* Backdrop for mobile */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          className="fixed inset-0 bg-black/40 z-40 md:hidden"
           onClick={onClose}
         />
       )}
 
       {/* Sidebar */}
       <motion.aside
-        initial={{ x: -300 }}
-        animate={{ x: isOpen ? 0 : -300 }}
+        initial={{ x: -280 }}
+        animate={{ x: isOpen ? 0 : -280 }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
         className={cn(
           "fixed md:relative z-50 md:z-auto",
-          "w-72 h-full bg-background border-r border-border",
+          "w-[280px] h-full bg-sidebar-background border-r border-sidebar-border",
           "flex flex-col",
           !isOpen && "md:hidden"
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border">
-          <h2 className="font-display font-semibold text-lg">Conversations</h2>
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" onClick={onNew} title="New chat">
-              <Plus className="h-5 w-5" />
+        <div className="flex items-center justify-between p-3 h-[53px] border-b border-sidebar-border">
+          <h2 className="font-display font-semibold text-sm text-sidebar-foreground">History</h2>
+          <div className="flex items-center gap-0.5">
+            <Button variant="ghost" size="icon" onClick={onNew} title="New chat" className="h-8 w-8 text-sidebar-foreground/70 hover:text-sidebar-foreground">
+              <Plus className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
               size="icon"
               onClick={onClose}
-              className="md:hidden"
+              className="md:hidden h-8 w-8 text-sidebar-foreground/70 hover:text-sidebar-foreground"
             >
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4" />
             </Button>
           </div>
         </div>
 
-        {/* Search Input */}
-        <div className="p-3 border-b border-border">
+        {/* Search */}
+        <div className="px-3 py-2">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input
-              placeholder="Search conversations..."
+              placeholder="Search…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-9 bg-muted/50"
+              className="pl-8 h-8 text-sm bg-sidebar-accent/50 border-sidebar-border focus:border-sidebar-ring"
             />
           </div>
         </div>
 
-        {/* Conversations List */}
+        {/* Conversations */}
         <ScrollArea className="flex-1">
-          <div className="p-2 space-y-1">
+          <div className="px-2 py-1 space-y-0.5">
             {filteredConversations.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">
-                {searchQuery ? "No matching conversations" : "No conversations yet"}
+              <p className="text-xs text-muted-foreground text-center py-8">
+                {searchQuery ? "No results" : "No conversations yet"}
               </p>
             ) : (
               filteredConversations.map((conv) => (
-                <motion.div
+                <div
                   key={conv.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
                   className={cn(
-                    "group flex items-center gap-2 p-3 rounded-lg cursor-pointer transition-colors",
+                    "group flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer transition-colors text-sm",
                     currentId === conv.id
-                      ? "bg-primary/10 text-primary"
-                      : "hover:bg-muted"
+                      ? "bg-sidebar-accent text-sidebar-foreground"
+                      : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
                   )}
                   onClick={() => editingId !== conv.id && onSelect(conv.id)}
                 >
-                  <MessageSquare className="h-4 w-4 flex-shrink-0" />
+                  <MessageSquare className="h-4 w-4 flex-shrink-0 opacity-60" />
                   <div className="flex-1 min-w-0">
                     {editingId === conv.id ? (
                       <Input
@@ -173,68 +167,61 @@ export const ConversationSidebar = ({
                         onKeyDown={(e) => handleEditKeyDown(e, conv.id)}
                         onBlur={() => saveEdit(conv.id)}
                         onClick={(e) => e.stopPropagation()}
-                        className="h-7 text-sm py-0 px-2"
+                        className="h-6 text-xs py-0 px-1.5"
                       />
                     ) : (
-                      <>
-                        <p className="text-sm font-medium truncate">
-                          {conv.title || "New conversation"}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {formatDate(conv.updated_at)}
-                        </p>
-                      </>
+                      <p className="text-sm truncate">{conv.title || "New conversation"}</p>
                     )}
                   </div>
-                  <div className="flex items-center gap-0.5">
+                  <div className="flex items-center gap-0.5 flex-shrink-0">
                     {editingId === conv.id ? (
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7"
+                        className="h-6 w-6"
                         onClick={(e) => {
                           e.stopPropagation();
                           saveEdit(conv.id);
                         }}
                       >
-                        <Check className="h-3.5 w-3.5 text-primary" />
+                        <Check className="h-3 w-3 text-primary" />
                       </Button>
                     ) : (
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+                        className="h-6 w-6 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
                         onClick={(e) => startEditing(conv, e)}
                       >
-                        <Pencil className="h-3.5 w-3.5" />
+                        <Pencil className="h-3 w-3" />
                       </Button>
                     )}
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-7 w-7 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+                      className="h-6 w-6 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
                       onClick={(e) => {
                         e.stopPropagation();
                         onDelete(conv.id);
                       }}
                     >
-                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                      <Trash2 className="h-3 w-3 text-destructive" />
                     </Button>
                   </div>
-                </motion.div>
+                </div>
               ))
             )}
           </div>
         </ScrollArea>
 
         {/* Footer */}
-        <div className="p-4 border-t border-border">
+        <div className="p-3 border-t border-sidebar-border">
           <Button
             variant="ghost"
-            className="w-full justify-start gap-2 text-muted-foreground hover:text-destructive"
+            className="w-full justify-start gap-2 text-xs text-sidebar-foreground/60 hover:text-destructive h-8"
             onClick={onSignOut}
           >
-            <LogOut className="h-4 w-4" />
+            <LogOut className="h-3.5 w-3.5" />
             Sign Out
           </Button>
         </div>
