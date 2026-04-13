@@ -87,13 +87,6 @@ export const ConversationSidebar = ({
 
   return (
     <>
-      {/* Backdrop for mobile */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-[60] md:hidden"
-          onClick={onClose}
-        />
-      )}
 
       {/* Sidebar */}
       <motion.aside
