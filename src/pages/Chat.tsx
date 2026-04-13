@@ -94,14 +94,7 @@ const Chat = () => {
       <Helmet>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
-      {/* Mobile sidebar backdrop */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-[60] md:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-      <div className="flex h-screen bg-background">
+      <div className="flex h-screen bg-background relative">
         {/* Sidebar */}
         <ConversationSidebar
           conversations={conversations}
