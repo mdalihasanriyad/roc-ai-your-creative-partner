@@ -238,6 +238,14 @@ const Chat = () => {
             hasMessages={messages.length > 0}
           />
         </div>
+
+        {/* Mobile sidebar backdrop */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-[60] md:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
       </div>
     </>
   );
