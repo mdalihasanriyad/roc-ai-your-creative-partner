@@ -87,13 +87,6 @@ export const ConversationSidebar = ({
 
   return (
     <>
-      {/* Backdrop for mobile */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 z-40 md:hidden"
-          onClick={onClose}
-        />
-      )}
 
       {/* Sidebar */}
       <motion.aside
@@ -101,7 +94,7 @@ export const ConversationSidebar = ({
         animate={{ x: isOpen ? 0 : -280 }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
         className={cn(
-          "fixed md:relative z-50 md:z-auto",
+          "fixed inset-y-0 left-0 md:relative z-[1000] md:z-auto",
           "w-[280px] h-full bg-sidebar-background border-r border-sidebar-border",
           "flex flex-col",
           !isOpen && "md:hidden"

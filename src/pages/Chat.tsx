@@ -94,7 +94,7 @@ const Chat = () => {
       <Helmet>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
-      <div className="flex h-screen bg-background">
+      <div className="flex h-screen bg-background relative">
         {/* Sidebar */}
         <ConversationSidebar
           conversations={conversations}
@@ -115,7 +115,7 @@ const Chat = () => {
         />
 
         {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-0">
           {/* Header - minimal, clean */}
           <header className="flex items-center justify-between px-3 py-2.5 sm:px-4 sm:py-3 border-b border-border/50 bg-background/80 backdrop-blur-sm flex-shrink-0 z-10">
             <div className="flex items-center gap-2 min-w-0">
@@ -238,6 +238,14 @@ const Chat = () => {
             hasMessages={messages.length > 0}
           />
         </div>
+
+        {/* Mobile sidebar backdrop */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-[999] md:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
       </div>
     </>
   );
