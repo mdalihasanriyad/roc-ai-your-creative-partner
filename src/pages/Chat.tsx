@@ -240,11 +240,12 @@ const Chat = () => {
         </div>
 
         {/* Mobile sidebar backdrop */}
-        <div
-          className="fixed inset-0 bg-red-500 z-[9999]"
-          style={{ display: sidebarOpen ? 'block' : 'none', opacity: 0.5 }}
-          onClick={() => setSidebarOpen(false)}
-        />
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-[65] md:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
       </div>
     </>
   );
