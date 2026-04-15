@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { MessageSquare, Plus, Trash2, X, LogOut, Search, Pencil, Check } from "lucide-react";
 import { Button } from "./ui/button";
@@ -87,7 +88,15 @@ export const ConversationSidebar = ({
 
   return (
     <>
-
+      {/* Mobile backdrop - rendered via portal to escape stacking contexts */}
+      {isOpen && createPortal(
+        <div
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[999] md:hidden"
+          onClick={onClose}
+          aria-hidden="true"
+        />,
+        document.body
+      )}
       {/* Sidebar */}
       <motion.aside
         initial={{ x: -280 }}
