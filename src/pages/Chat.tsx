@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useChatPersistence } from "@/hooks/useChatPersistence";
