@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { PanelLeftClose, PanelLeft, Plus, ArrowDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
+import { KeyboardShortcutsDialog } from "@/components/KeyboardShortcutsDialog";
 
 const Chat = () => {
   useApiWarmup();
@@ -238,7 +239,7 @@ const Chat = () => {
             hasMessages={messages.length > 0}
           />
         </div>
-
+        <KeyboardShortcutsDialog />
       </div>
     </>
   );
