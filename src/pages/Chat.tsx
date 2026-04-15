@@ -240,15 +240,6 @@ const Chat = () => {
           />
         </div>
 
-        {/* Mobile sidebar backdrop */}
-        {sidebarOpen && createPortal(
-          <div
-            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[999] md:hidden"
-            onClick={() => setSidebarOpen(false)}
-            aria-hidden="true"
-          />,
-          document.body
-        )}
       </div>
     </>
   );
