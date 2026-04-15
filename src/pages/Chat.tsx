@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useChatPersistence } from "@/hooks/useChatPersistence";
@@ -240,11 +241,12 @@ const Chat = () => {
         </div>
 
         {/* Mobile sidebar backdrop */}
-        {sidebarOpen && (
+        {sidebarOpen && createPortal(
           <div
             className="fixed inset-0 bg-black/50 z-[999] md:hidden"
             onClick={() => setSidebarOpen(false)}
-          />
+          />,
+          document.body
         )}
       </div>
     </>
