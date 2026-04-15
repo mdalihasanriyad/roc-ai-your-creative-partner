@@ -91,19 +91,22 @@ export const ConversationSidebar = ({
       {/* Mobile backdrop - rendered via portal to escape stacking contexts */}
       {isOpen && createPortal(
         <div
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[999] md:hidden"
+          className="fixed inset-0 z-[1000] md:hidden"
           onClick={onClose}
           aria-hidden="true"
-        />,
+        >
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
+        </div>,
         document.body
       )}
+
       {/* Sidebar */}
       <motion.aside
         initial={{ x: -280 }}
         animate={{ x: isOpen ? 0 : -280 }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
         className={cn(
-          "fixed inset-y-0 left-0 md:relative z-[1000] md:z-auto",
+          "fixed inset-y-0 left-0 md:relative z-[1001] md:z-auto",
           "w-[280px] h-full bg-sidebar-background border-r border-sidebar-border",
           "flex flex-col",
           !isOpen && "md:hidden"
