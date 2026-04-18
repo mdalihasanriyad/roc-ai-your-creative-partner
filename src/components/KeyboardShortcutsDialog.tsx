@@ -5,7 +5,9 @@ import { Keyboard } from "lucide-react";
 const shortcuts = [
   { keys: ["Enter"], description: "Send message" },
   { keys: ["Shift", "Enter"], description: "New line" },
+  { keys: ["Esc"], description: "Clear current input" },
   { keys: ["Ctrl", "Shift", "N"], description: "New conversation" },
+  { keys: ["Ctrl", "Shift", "S"], description: "Toggle sidebar" },
   { keys: ["?"], description: "Show keyboard shortcuts" },
 ];
 
