@@ -66,6 +66,18 @@ const Chat = () => {
     return () => container.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Ctrl+Shift+S to toggle sidebar
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "S" || e.key === "s")) {
+        e.preventDefault();
+        setSidebarOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
