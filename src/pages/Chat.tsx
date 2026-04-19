@@ -163,6 +163,16 @@ const Chat = () => {
             </div>
             <div className="flex items-center gap-1.5 flex-shrink-0">
               <ModeSelector mode={mode} onModeChange={setMode} />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShortcutsOpen(true)}
+                className="h-9 w-9 text-muted-foreground hover:text-foreground"
+                title="Keyboard shortcuts (?)"
+                aria-label="Keyboard shortcuts"
+              >
+                <Keyboard className="h-5 w-5" />
+              </Button>
               <ThemeToggle />
             </div>
           </header>
