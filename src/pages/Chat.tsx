@@ -11,6 +11,7 @@ import { RocLogo } from "@/components/RocLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ModeSelector } from "@/components/ModeSelector";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PanelLeftClose, PanelLeft, Plus, ArrowDown, Keyboard } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -132,49 +133,73 @@ const Chat = () => {
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-0">
           {/* Header - minimal, clean */}
           <header className="flex items-center justify-between px-3 py-2.5 sm:px-4 sm:py-3 border-b border-border/50 bg-background/80 backdrop-blur-sm flex-shrink-0 z-10">
-            <div className="flex items-center gap-2 min-w-0">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="flex-shrink-0 h-9 w-9 text-muted-foreground hover:text-foreground"
-              >
-                {sidebarOpen ? (
-                  <PanelLeftClose className="h-5 w-5" />
-                ) : (
-                  <PanelLeft className="h-5 w-5" />
-                )}
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => startNewConversation()}
-                className="flex-shrink-0 h-9 w-9 text-muted-foreground hover:text-foreground"
-                title="New chat"
-              >
-                <Plus className="h-5 w-5" />
-              </Button>
-              <Link to="/" className="flex items-center gap-1.5 min-w-0">
-                <RocLogo size="sm" />
-                <span className="font-display font-semibold text-base gradient-text truncate">
-                  Roc AI
-                </span>
-              </Link>
-            </div>
-            <div className="flex items-center gap-1.5 flex-shrink-0">
-              <ModeSelector mode={mode} onModeChange={setMode} />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShortcutsOpen(true)}
-                className="h-9 w-9 text-muted-foreground hover:text-foreground"
-                title="Keyboard shortcuts (?)"
-                aria-label="Keyboard shortcuts"
-              >
-                <Keyboard className="h-5 w-5" />
-              </Button>
-              <ThemeToggle />
-            </div>
+            <TooltipProvider delayDuration={300}>
+              <div className="flex items-center gap-2 min-w-0">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setSidebarOpen(!sidebarOpen)}
+                      className="flex-shrink-0 h-9 w-9 text-muted-foreground hover:text-foreground"
+                      aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
+                    >
+                      {sidebarOpen ? (
+                        <PanelLeftClose className="h-5 w-5" />
+                      ) : (
+                        <PanelLeft className="h-5 w-5" />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{sidebarOpen ? "Close sidebar" : "Open sidebar"}</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => startNewConversation()}
+                      className="flex-shrink-0 h-9 w-9 text-muted-foreground hover:text-foreground"
+                      aria-label="New chat"
+                    >
+                      <Plus className="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>New chat</TooltipContent>
+                </Tooltip>
+                <Link to="/" className="flex items-center gap-1.5 min-w-0">
+                  <RocLogo size="sm" />
+                  <span className="font-display font-semibold text-base gradient-text truncate">
+                    Roc AI
+                  </span>
+                </Link>
+              </div>
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <ModeSelector mode={mode} onModeChange={setMode} />
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setShortcutsOpen(true)}
+                      className="h-9 w-9 text-muted-foreground hover:text-foreground"
+                      aria-label="Keyboard shortcuts"
+                    >
+                      <Keyboard className="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Keyboard shortcuts (?)</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span>
+                      <ThemeToggle />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>Toggle theme</TooltipContent>
+                </Tooltip>
+              </div>
+            </TooltipProvider>
           </header>
 
           {/* Messages Area */}
