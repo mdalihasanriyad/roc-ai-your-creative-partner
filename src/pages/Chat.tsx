@@ -262,7 +262,7 @@ const Chat = () => {
             hasMessages={messages.length > 0}
           />
         </div>
-        <KeyboardShortcutsDialog />
+        <KeyboardShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
       </div>
     </>
   );
