@@ -11,7 +11,7 @@ import { RocLogo } from "@/components/RocLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ModeSelector } from "@/components/ModeSelector";
 import { Button } from "@/components/ui/button";
-import { PanelLeftClose, PanelLeft, Plus, ArrowDown } from "lucide-react";
+import { PanelLeftClose, PanelLeft, Plus, ArrowDown, Keyboard } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { KeyboardShortcutsDialog } from "@/components/KeyboardShortcutsDialog";
