@@ -2,12 +2,17 @@ import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Keyboard } from "lucide-react";
 
+const isMac =
+  typeof navigator !== "undefined" &&
+  /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent);
+const modKey = isMac ? "⌘" : "Ctrl";
+
 const shortcuts = [
   { keys: ["Enter"], description: "Send message" },
   { keys: ["Shift", "Enter"], description: "New line" },
   { keys: ["Esc"], description: "Clear current input" },
-  { keys: ["Ctrl", "Shift", "N"], description: "New conversation" },
-  { keys: ["Ctrl", "Shift", "S"], description: "Toggle sidebar" },
+  { keys: [modKey, "Shift", "N"], description: "New conversation" },
+  { keys: [modKey, "Shift", "S"], description: "Toggle sidebar" },
   { keys: ["?"], description: "Show keyboard shortcuts" },
 ];
 
