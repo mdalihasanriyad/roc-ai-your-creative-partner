@@ -11,7 +11,7 @@ import { RocLogo } from "@/components/RocLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ModeSelector } from "@/components/ModeSelector";
 import { Button } from "@/components/ui/button";
-import { PanelLeftClose, PanelLeft, Plus, ArrowDown } from "lucide-react";
+import { PanelLeftClose, PanelLeft, Plus, ArrowDown, Keyboard } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { KeyboardShortcutsDialog } from "@/components/KeyboardShortcutsDialog";
@@ -23,6 +23,7 @@ const Chat = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -162,6 +163,16 @@ const Chat = () => {
             </div>
             <div className="flex items-center gap-1.5 flex-shrink-0">
               <ModeSelector mode={mode} onModeChange={setMode} />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShortcutsOpen(true)}
+                className="h-9 w-9 text-muted-foreground hover:text-foreground"
+                title="Keyboard shortcuts (?)"
+                aria-label="Keyboard shortcuts"
+              >
+                <Keyboard className="h-5 w-5" />
+              </Button>
               <ThemeToggle />
             </div>
           </header>
@@ -251,7 +262,7 @@ const Chat = () => {
             hasMessages={messages.length > 0}
           />
         </div>
-        <KeyboardShortcutsDialog />
+        <KeyboardShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
       </div>
     </>
   );
