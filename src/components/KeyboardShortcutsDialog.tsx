@@ -22,8 +22,21 @@ const Kbd = ({ children }: { children: string }) => (
   </kbd>
 );
 
-export const KeyboardShortcutsDialog = () => {
-  const [open, setOpen] = useState(false);
+export const KeyboardShortcutsDialog = ({
+  open: controlledOpen,
+  onOpenChange,
+}: {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+} = {}) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = (v: boolean | ((prev: boolean) => boolean)) => {
+    const next = typeof v === "function" ? v(open) : v;
+    if (!isControlled) setInternalOpen(next);
+    onOpenChange?.(next);
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -40,7 +53,7 @@ export const KeyboardShortcutsDialog = () => {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [isControlled, controlledOpen]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
