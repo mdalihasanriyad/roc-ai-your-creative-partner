@@ -329,7 +329,7 @@ export function useChatPersistence(userId: string | undefined) {
           },
           body: JSON.stringify({
             messages: apiMessages,
-            mode,
+            mode: /^generate an image of/i.test(userMessage.content) ? "image_generation" : mode,
           }),
         });
 
