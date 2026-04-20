@@ -128,8 +128,8 @@ serve(async (req) => {
       ? lastUserMessage.content 
       : lastUserMessage?.content?.[0]?.text || "";
 
-    // Check if this is an image generation request
-    const isImageRequest = isImageGenerationRequest(userContent);
+    // Only trigger image generation/edit via explicit modes, not keyword detection
+    const isImageRequest = mode === "image_generation";
     const isEditRequest = isImageEditRequest(mode);
 
     // Check if any message has image content (multimodal input)
