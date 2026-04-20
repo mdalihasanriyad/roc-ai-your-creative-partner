@@ -5,6 +5,7 @@ import { MessageSquare, Plus, Trash2, X, LogOut, Search, Pencil, Check } from "l
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { ScrollArea } from "./ui/scroll-area";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { cn } from "@/lib/utils";
 
 export interface Conversation {
@@ -115,19 +116,38 @@ export const ConversationSidebar = ({
         {/* Header */}
         <div className="flex items-center justify-between p-3 h-[53px] border-b border-sidebar-border">
           <h2 className="font-display font-semibold text-sm text-sidebar-foreground">History</h2>
-          <div className="flex items-center gap-0.5">
-            <Button variant="ghost" size="icon" onClick={onNew} title="New chat" className="h-8 w-8 text-sidebar-foreground/70 hover:text-sidebar-foreground">
-              <Plus className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className="md:hidden h-8 w-8 text-sidebar-foreground/70 hover:text-sidebar-foreground"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          <TooltipProvider delayDuration={300}>
+            <div className="flex items-center gap-0.5">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={onNew}
+                    aria-label="New chat"
+                    className="h-8 w-8 text-sidebar-foreground/70 hover:text-sidebar-foreground"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>New chat</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={onClose}
+                    aria-label="Close sidebar"
+                    className="md:hidden h-8 w-8 text-sidebar-foreground/70 hover:text-sidebar-foreground"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Close sidebar</TooltipContent>
+              </Tooltip>
+            </div>
+          </TooltipProvider>
         </div>
 
         {/* Search */}
@@ -221,14 +241,22 @@ export const ConversationSidebar = ({
 
         {/* Footer */}
         <div className="p-3 border-t border-sidebar-border">
-          <Button
-            variant="ghost"
-            className="w-full justify-start gap-2 text-xs text-sidebar-foreground/60 hover:text-destructive h-8"
-            onClick={onSignOut}
-          >
-            <LogOut className="h-3.5 w-3.5" />
-            Sign Out
-          </Button>
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start gap-2 text-xs text-sidebar-foreground/60 hover:text-destructive h-8"
+                  onClick={onSignOut}
+                  aria-label="Sign out"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                  Sign Out
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top">Sign out of your account</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </motion.aside>
     </>
