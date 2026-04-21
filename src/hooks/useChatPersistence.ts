@@ -339,12 +339,6 @@ export function useChatPersistence(userId: string | undefined) {
           if (error) console.error("Error saving user message:", error);
         });
 
-      const startedAt = performance.now();
-      const isImageGenPrefix = /^generate an image of/i.test(userMessage.content);
-      const effectiveMode: string = isImageGenPrefix ? "image_generation" : mode;
-      const requestType: MessageDebug["requestType"] = isImageGenPrefix
-        ? "image_generation"
-        : "text";
 
       const fetchWithRetry = async (retries = 1): Promise<Response> => {
         const res = await fetch(CHAT_URL, {
