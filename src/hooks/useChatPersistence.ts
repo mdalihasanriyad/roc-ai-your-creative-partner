@@ -12,6 +12,16 @@ const toast = {
   success: (msg: string) => sonnerToast.success(msg, { id: msg }),
 };
 
+export type MessageDebug = {
+  status?: number;
+  statusText?: string;
+  mode?: string;
+  requestType?: "text" | "image_generation" | "image_edit";
+  responseSnippet?: string;
+  errorMessage?: string;
+  durationMs?: number;
+};
+
 export type Message = {
   id: string;
   role: "user" | "assistant";
@@ -20,6 +30,8 @@ export type Message = {
   images?: string[]; // base64 image data for user uploads
   generatedImages?: string[]; // base64 image data for AI generated images
   suggestions?: string[]; // follow-up suggestion chips
+  error?: boolean;
+  debug?: MessageDebug;
 };
 
 const SUGGESTIONS_DELIMITER = "---SUGGESTIONS---";
