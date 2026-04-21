@@ -332,6 +332,17 @@ export function useChatPersistence(userId: string | undefined) {
           if (error) console.error("Error saving user message:", error);
         });
 
+      const startedAt = performance.now();
+      const effectiveMode: AIMode = /^generate an image of/i.test(userMessage.content)
+        ? "image_generation"
+        : mode;
+      const requestType: MessageDebug["requestType"] =
+        effectiveMode === "image_generation"
+          ? "image_generation"
+          : effectiveMode === "image_edit"
+          ? "image_edit"
+          : "text";
+
       const fetchWithRetry = async (retries = 1): Promise<Response> => {
         const res = await fetch(CHAT_URL, {
           method: "POST",
@@ -341,18 +352,36 @@ export function useChatPersistence(userId: string | undefined) {
           },
           body: JSON.stringify({
             messages: apiMessages,
-            mode: /^generate an image of/i.test(userMessage.content) ? "image_generation" : mode,
+            mode: effectiveMode,
           }),
         });
 
         if (!res.ok) {
-          const errorData = await res.json().catch(() => ({}));
+          const rawBody = await res.text().catch(() => "");
+          let parsedError: string | undefined;
+          try {
+            parsedError = JSON.parse(rawBody)?.error;
+          } catch {
+            /* body wasn't JSON */
+          }
           if (retries > 0) {
-            console.warn("Chat request failed, retrying...", errorData);
+            console.warn("Chat request failed, retrying...", { status: res.status, body: rawBody });
             await new Promise((r) => setTimeout(r, 1000));
             return fetchWithRetry(retries - 1);
           }
-          throw new Error(errorData.error || `Request failed with status ${res.status}`);
+          const err = new Error(
+            parsedError || `Request failed with status ${res.status}`
+          ) as Error & { debug?: MessageDebug };
+          err.debug = {
+            status: res.status,
+            statusText: res.statusText,
+            mode: effectiveMode,
+            requestType,
+            responseSnippet: rawBody.slice(0, 500),
+            errorMessage: parsedError,
+            durationMs: Math.round(performance.now() - startedAt),
+          };
+          throw err;
         }
         return res;
       };
