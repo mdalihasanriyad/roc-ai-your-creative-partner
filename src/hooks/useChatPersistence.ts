@@ -304,6 +304,13 @@ export function useChatPersistence(userId: string | undefined) {
         { id: assistantId, role: "assistant", content: "", timestamp: new Date().toISOString() },
       ]);
 
+      const startedAt = performance.now();
+      const isImageGenPrefix = /^generate an image of/i.test(userMessage.content);
+      const effectiveMode: string = isImageGenPrefix ? "image_generation" : mode;
+      const requestType: MessageDebug["requestType"] = isImageGenPrefix
+        ? "image_generation"
+        : "text";
+
       try {
         // Build messages array for API - limit to recent messages to reduce payload and latency
         const recentMessages = messages.slice(-20);
