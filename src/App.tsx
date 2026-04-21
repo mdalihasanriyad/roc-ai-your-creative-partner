@@ -11,33 +11,36 @@ import Index from "./pages/Index";
 import Chat from "./pages/Chat";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <HelmetProvider>
-      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-        <AuthProvider>
-          <TooltipProvider>
-            <Analytics/>
-            <Toaster />
-            <Sonner />
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <HelmetProvider>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+          <AuthProvider>
+            <TooltipProvider>
+              <Analytics/>
+              <Toaster />
+              <Sonner />
 
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/chat" element={<Chat />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/chat" element={<Chat />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
 
-          </TooltipProvider>
-        </AuthProvider>
-      </ThemeProvider>
-    </HelmetProvider>
-  </QueryClientProvider>
+            </TooltipProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </HelmetProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;
