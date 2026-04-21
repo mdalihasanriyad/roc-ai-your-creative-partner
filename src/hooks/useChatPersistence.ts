@@ -12,6 +12,16 @@ const toast = {
   success: (msg: string) => sonnerToast.success(msg, { id: msg }),
 };
 
+export type MessageDebug = {
+  status?: number;
+  statusText?: string;
+  mode?: string;
+  requestType?: "text" | "image_generation" | "image_edit";
+  responseSnippet?: string;
+  errorMessage?: string;
+  durationMs?: number;
+};
+
 export type Message = {
   id: string;
   role: "user" | "assistant";
@@ -20,6 +30,8 @@ export type Message = {
   images?: string[]; // base64 image data for user uploads
   generatedImages?: string[]; // base64 image data for AI generated images
   suggestions?: string[]; // follow-up suggestion chips
+  error?: boolean;
+  debug?: MessageDebug;
 };
 
 const SUGGESTIONS_DELIMITER = "---SUGGESTIONS---";
@@ -292,6 +304,13 @@ export function useChatPersistence(userId: string | undefined) {
         { id: assistantId, role: "assistant", content: "", timestamp: new Date().toISOString() },
       ]);
 
+      const startedAt = performance.now();
+      const isImageGenPrefix = /^generate an image of/i.test(userMessage.content);
+      const effectiveMode: string = isImageGenPrefix ? "image_generation" : mode;
+      const requestType: MessageDebug["requestType"] = isImageGenPrefix
+        ? "image_generation"
+        : "text";
+
       try {
         // Build messages array for API - limit to recent messages to reduce payload and latency
         const recentMessages = messages.slice(-20);
@@ -320,6 +339,7 @@ export function useChatPersistence(userId: string | undefined) {
           if (error) console.error("Error saving user message:", error);
         });
 
+
       const fetchWithRetry = async (retries = 1): Promise<Response> => {
         const res = await fetch(CHAT_URL, {
           method: "POST",
@@ -329,18 +349,36 @@ export function useChatPersistence(userId: string | undefined) {
           },
           body: JSON.stringify({
             messages: apiMessages,
-            mode: /^generate an image of/i.test(userMessage.content) ? "image_generation" : mode,
+            mode: effectiveMode,
           }),
         });
 
         if (!res.ok) {
-          const errorData = await res.json().catch(() => ({}));
+          const rawBody = await res.text().catch(() => "");
+          let parsedError: string | undefined;
+          try {
+            parsedError = JSON.parse(rawBody)?.error;
+          } catch {
+            /* body wasn't JSON */
+          }
           if (retries > 0) {
-            console.warn("Chat request failed, retrying...", errorData);
+            console.warn("Chat request failed, retrying...", { status: res.status, body: rawBody });
             await new Promise((r) => setTimeout(r, 1000));
             return fetchWithRetry(retries - 1);
           }
-          throw new Error(errorData.error || `Request failed with status ${res.status}`);
+          const err = new Error(
+            parsedError || `Request failed with status ${res.status}`
+          ) as Error & { debug?: MessageDebug };
+          err.debug = {
+            status: res.status,
+            statusText: res.statusText,
+            mode: effectiveMode,
+            requestType,
+            responseSnippet: rawBody.slice(0, 500),
+            errorMessage: parsedError,
+            durationMs: Math.round(performance.now() - startedAt),
+          };
+          throw err;
         }
         return res;
       };
@@ -450,8 +488,29 @@ export function useChatPersistence(userId: string | undefined) {
         }
       } catch (error) {
         console.error("Chat error:", error);
-        toast.error(error instanceof Error ? error.message : "Failed to send message");
-        setMessages((prev) => prev.filter((m) => m.id !== assistantId));
+        const errMsg = error instanceof Error ? error.message : "Failed to send message";
+        const debug: MessageDebug = (error as { debug?: MessageDebug })?.debug ?? {
+          mode: effectiveMode,
+          requestType,
+          errorMessage: errMsg,
+          durationMs: Math.round(performance.now() - startedAt),
+        };
+        toast.error(errMsg);
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantId
+              ? {
+                  ...m,
+                  content:
+                    requestType === "image_generation"
+                      ? "⚠️ Image generation failed."
+                      : "⚠️ Request failed.",
+                  error: true,
+                  debug,
+                }
+              : m
+          )
+        );
       } finally {
         setIsLoading(false);
       }
