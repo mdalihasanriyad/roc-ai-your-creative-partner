@@ -333,15 +333,11 @@ export function useChatPersistence(userId: string | undefined) {
         });
 
       const startedAt = performance.now();
-      const effectiveMode: AIMode = /^generate an image of/i.test(userMessage.content)
+      const isImageGenPrefix = /^generate an image of/i.test(userMessage.content);
+      const effectiveMode: string = isImageGenPrefix ? "image_generation" : mode;
+      const requestType: MessageDebug["requestType"] = isImageGenPrefix
         ? "image_generation"
-        : mode;
-      const requestType: MessageDebug["requestType"] =
-        effectiveMode === "image_generation"
-          ? "image_generation"
-          : effectiveMode === "image_edit"
-          ? "image_edit"
-          : "text";
+        : "text";
 
       const fetchWithRetry = async (retries = 1): Promise<Response> => {
         const res = await fetch(CHAT_URL, {
