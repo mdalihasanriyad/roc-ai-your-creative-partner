@@ -259,6 +259,7 @@ const Chat = () => {
                     isEditingImage={isEditingImage}
                     onSuggestionClick={(suggestion) => sendMessage(suggestion)}
                     onRetry={retryMessage}
+                    isRetrying={isLoading}
                   />
                 ))}
                 <div ref={messagesEndRef} />
