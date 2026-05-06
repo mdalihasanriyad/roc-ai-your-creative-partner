@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import { Message } from "@/hooks/useChatPersistence";
+import type { AIMode } from "@/components/ModeSelector";
 import { Sparkles, User, Copy, Check, Download, RefreshCw, Pencil, ImageIcon } from "lucide-react";
 import { format } from "date-fns";
 import { useState, useEffect, useRef } from "react";
@@ -17,6 +18,7 @@ interface ChatMessageProps {
   onEditImage?: (imageUrl: string, instruction: string) => void;
   isEditingImage?: boolean;
   onSuggestionClick?: (suggestion: string) => void;
+  onRetry?: (prompt: string, originalMode?: AIMode) => void;
 }
 
 export const ChatMessage = ({
@@ -27,6 +29,7 @@ export const ChatMessage = ({
   onEditImage,
   isEditingImage,
   onSuggestionClick,
+  onRetry,
 }: ChatMessageProps) => {
   const isUser = message.role === "user";
   const showTypingIndicator = isStreaming && !message.content;
@@ -150,9 +153,11 @@ export const ChatMessage = ({
               {/* Debug details for failed requests */}
               {!isUser && message.debug && (
                 <div className="mb-3 space-y-2">
-                  {message.error && message.debug.originalPrompt && onSuggestionClick && (
+                  {message.error && message.debug.originalPrompt && onRetry && (
                     <button
-                      onClick={() => onSuggestionClick(message.debug!.originalPrompt!)}
+                      onClick={() =>
+                        onRetry(message.debug!.originalPrompt!, message.debug!.originalMode)
+                      }
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
                     >
                       <RefreshCw className="w-3.5 h-3.5" />

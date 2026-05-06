@@ -35,6 +35,7 @@ const Chat = () => {
     isLoading,
     isLoadingConversations,
     sendMessage,
+    retryMessage,
     selectConversation,
     startNewConversation,
     deleteConversation,
@@ -257,6 +258,7 @@ const Chat = () => {
                     onEditImage={editImage}
                     isEditingImage={isEditingImage}
                     onSuggestionClick={(suggestion) => sendMessage(suggestion)}
+                    onRetry={retryMessage}
                   />
                 ))}
                 <div ref={messagesEndRef} />

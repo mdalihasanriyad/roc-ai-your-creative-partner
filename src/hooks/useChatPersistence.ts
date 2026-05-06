@@ -21,6 +21,7 @@ export type MessageDebug = {
   errorMessage?: string;
   durationMs?: number;
   originalPrompt?: string;
+  originalMode?: AIMode;
 };
 
 export type Message = {
@@ -217,7 +218,7 @@ export function useChatPersistence(userId: string | undefined) {
   }, []);
 
   const sendMessage = useCallback(
-    async (content: string, files?: FileAttachment[]) => {
+    async (content: string, files?: FileAttachment[], overrideMode?: AIMode) => {
       if ((!content.trim() && !files?.length) || isLoading || !userId) return;
 
       // Set loading state immediately for instant UI feedback
@@ -307,10 +308,10 @@ export function useChatPersistence(userId: string | undefined) {
 
       const startedAt = performance.now();
       const isImageGenPrefix = /^generate an image of/i.test(userMessage.content);
-      const effectiveMode: string = isImageGenPrefix ? "image_generation" : mode;
-      const requestType: MessageDebug["requestType"] = isImageGenPrefix
-        ? "image_generation"
-        : "text";
+      const activeMode = overrideMode ?? mode;
+      const effectiveMode: string = isImageGenPrefix ? "image_generation" : activeMode;
+      const requestType: MessageDebug["requestType"] =
+        effectiveMode === "image_generation" ? "image_generation" : "text";
 
       try {
         // Build messages array for API - limit to recent messages to reduce payload and latency
@@ -496,7 +497,11 @@ export function useChatPersistence(userId: string | undefined) {
           errorMessage: errMsg,
           durationMs: Math.round(performance.now() - startedAt),
         };
-        const debug: MessageDebug = { ...baseDebug, originalPrompt: userMessage.content };
+        const debug: MessageDebug = {
+          ...baseDebug,
+          originalPrompt: userMessage.content,
+          originalMode: activeMode,
+        };
         toast.error(errMsg);
         setMessages((prev) =>
           prev.map((m) =>
@@ -645,6 +650,13 @@ export function useChatPersistence(userId: string | undefined) {
     [userId, isLoading, currentConversationId, createConversation]
   );
 
+  const retryMessage = useCallback(
+    async (prompt: string, originalMode?: AIMode) => {
+      await sendMessage(prompt, undefined, originalMode);
+    },
+    [sendMessage]
+  );
+
   return {
     conversations,
     currentConversationId,
@@ -652,6 +664,7 @@ export function useChatPersistence(userId: string | undefined) {
     isLoading,
     isLoadingConversations,
     sendMessage,
+    retryMessage,
     selectConversation,
     startNewConversation,
     deleteConversation,
