@@ -18,7 +18,8 @@ interface ChatMessageProps {
   onEditImage?: (imageUrl: string, instruction: string) => void;
   isEditingImage?: boolean;
   onSuggestionClick?: (suggestion: string) => void;
-  onRetry?: (prompt: string, originalMode?: AIMode) => void;
+  onRetry?: (prompt: string, originalMode?: AIMode) => void | Promise<void>;
+  isRetrying?: boolean;
 }
 
 export const ChatMessage = ({
