@@ -35,6 +35,7 @@ const Chat = () => {
     isLoading,
     isLoadingConversations,
     sendMessage,
+    retryMessage,
     selectConversation,
     startNewConversation,
     deleteConversation,
