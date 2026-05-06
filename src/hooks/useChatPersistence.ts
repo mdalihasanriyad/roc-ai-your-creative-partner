@@ -20,6 +20,7 @@ export type MessageDebug = {
   responseSnippet?: string;
   errorMessage?: string;
   durationMs?: number;
+  originalPrompt?: string;
 };
 
 export type Message = {
