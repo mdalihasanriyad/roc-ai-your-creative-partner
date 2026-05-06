@@ -20,6 +20,7 @@ export type MessageDebug = {
   responseSnippet?: string;
   errorMessage?: string;
   durationMs?: number;
+  originalPrompt?: string;
 };
 
 export type Message = {
@@ -489,12 +490,13 @@ export function useChatPersistence(userId: string | undefined) {
       } catch (error) {
         console.error("Chat error:", error);
         const errMsg = error instanceof Error ? error.message : "Failed to send message";
-        const debug: MessageDebug = (error as { debug?: MessageDebug })?.debug ?? {
+        const baseDebug: MessageDebug = (error as { debug?: MessageDebug })?.debug ?? {
           mode: effectiveMode,
           requestType,
           errorMessage: errMsg,
           durationMs: Math.round(performance.now() - startedAt),
         };
+        const debug: MessageDebug = { ...baseDebug, originalPrompt: userMessage.content };
         toast.error(errMsg);
         setMessages((prev) =>
           prev.map((m) =>

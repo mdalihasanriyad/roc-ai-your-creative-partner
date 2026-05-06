@@ -149,51 +149,64 @@ export const ChatMessage = ({
 
               {/* Debug details for failed requests */}
               {!isUser && message.debug && (
-                <details
-                  className="mb-3 rounded-lg border border-destructive/30 bg-destructive/5 text-xs"
-                  open
-                >
-                  <summary className="cursor-pointer select-none px-3 py-2 font-medium text-destructive flex flex-wrap items-center gap-2">
-                    <span>🔍 Debug details</span>
-                    {message.debug.status != null && (
-                      <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-destructive/10">
-                        {message.debug.status} {message.debug.statusText}
-                      </span>
-                    )}
-                    {message.debug.requestType && (
-                      <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                        {message.debug.requestType}
-                      </span>
-                    )}
-                  </summary>
-                  <div className="px-3 pb-3 space-y-1.5 text-muted-foreground font-mono">
-                    {message.debug.mode && (
-                      <div>
-                        <span className="text-foreground/70">mode:</span> {message.debug.mode}
-                      </div>
-                    )}
-                    {message.debug.durationMs != null && (
-                      <div>
-                        <span className="text-foreground/70">duration:</span>{" "}
-                        {message.debug.durationMs}ms
-                      </div>
-                    )}
-                    {message.debug.errorMessage && (
-                      <div>
-                        <span className="text-foreground/70">error:</span>{" "}
-                        {message.debug.errorMessage}
-                      </div>
-                    )}
-                    {message.debug.responseSnippet && (
-                      <div>
-                        <div className="text-foreground/70 mb-1">response snippet:</div>
-                        <pre className="bg-background/60 border border-border/50 rounded p-2 overflow-auto max-h-40 whitespace-pre-wrap break-all">
-                          {message.debug.responseSnippet}
-                        </pre>
-                      </div>
-                    )}
-                  </div>
-                </details>
+                <div className="mb-3 space-y-2">
+                  {message.error && message.debug.originalPrompt && onSuggestionClick && (
+                    <button
+                      onClick={() => onSuggestionClick(message.debug!.originalPrompt!)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      {message.debug.requestType === "image_generation"
+                        ? "Retry image generation"
+                        : "Retry"}
+                    </button>
+                  )}
+                  <details
+                    className="rounded-lg border border-destructive/30 bg-destructive/5 text-xs"
+                    open
+                  >
+                    <summary className="cursor-pointer select-none px-3 py-2 font-medium text-destructive flex flex-wrap items-center gap-2">
+                      <span>🔍 Debug details</span>
+                      {message.debug.status != null && (
+                        <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-destructive/10">
+                          {message.debug.status} {message.debug.statusText}
+                        </span>
+                      )}
+                      {message.debug.requestType && (
+                        <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                          {message.debug.requestType}
+                        </span>
+                      )}
+                    </summary>
+                    <div className="px-3 pb-3 space-y-1.5 text-muted-foreground font-mono">
+                      {message.debug.mode && (
+                        <div>
+                          <span className="text-foreground/70">mode:</span> {message.debug.mode}
+                        </div>
+                      )}
+                      {message.debug.durationMs != null && (
+                        <div>
+                          <span className="text-foreground/70">duration:</span>{" "}
+                          {message.debug.durationMs}ms
+                        </div>
+                      )}
+                      {message.debug.errorMessage && (
+                        <div>
+                          <span className="text-foreground/70">error:</span>{" "}
+                          {message.debug.errorMessage}
+                        </div>
+                      )}
+                      {message.debug.responseSnippet && (
+                        <div>
+                          <div className="text-foreground/70 mb-1">response snippet:</div>
+                          <pre className="bg-background/60 border border-border/50 rounded p-2 overflow-auto max-h-40 whitespace-pre-wrap break-all">
+                            {message.debug.responseSnippet}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+                  </details>
+                </div>
               )}
 
               {/* Image attachments for user messages */}
