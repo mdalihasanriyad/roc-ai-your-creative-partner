@@ -650,6 +650,13 @@ export function useChatPersistence(userId: string | undefined) {
     [userId, isLoading, currentConversationId, createConversation]
   );
 
+  const retryMessage = useCallback(
+    async (prompt: string, originalMode?: AIMode) => {
+      await sendMessage(prompt, undefined, originalMode);
+    },
+    [sendMessage]
+  );
+
   return {
     conversations,
     currentConversationId,
@@ -657,6 +664,7 @@ export function useChatPersistence(userId: string | undefined) {
     isLoading,
     isLoadingConversations,
     sendMessage,
+    retryMessage,
     selectConversation,
     startNewConversation,
     deleteConversation,
