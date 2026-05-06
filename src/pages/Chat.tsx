@@ -258,6 +258,7 @@ const Chat = () => {
                     onEditImage={editImage}
                     isEditingImage={isEditingImage}
                     onSuggestionClick={(suggestion) => sendMessage(suggestion)}
+                    onRetry={retryMessage}
                   />
                 ))}
                 <div ref={messagesEndRef} />
