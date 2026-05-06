@@ -21,6 +21,7 @@ export type MessageDebug = {
   errorMessage?: string;
   durationMs?: number;
   originalPrompt?: string;
+  originalMode?: AIMode;
 };
 
 export type Message = {
