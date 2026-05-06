@@ -217,7 +217,7 @@ export function useChatPersistence(userId: string | undefined) {
   }, []);
 
   const sendMessage = useCallback(
-    async (content: string, files?: FileAttachment[]) => {
+    async (content: string, files?: FileAttachment[], overrideMode?: AIMode) => {
       if ((!content.trim() && !files?.length) || isLoading || !userId) return;
 
       // Set loading state immediately for instant UI feedback
