@@ -307,10 +307,10 @@ export function useChatPersistence(userId: string | undefined) {
 
       const startedAt = performance.now();
       const isImageGenPrefix = /^generate an image of/i.test(userMessage.content);
-      const effectiveMode: string = isImageGenPrefix ? "image_generation" : mode;
-      const requestType: MessageDebug["requestType"] = isImageGenPrefix
-        ? "image_generation"
-        : "text";
+      const activeMode = overrideMode ?? mode;
+      const effectiveMode: string = isImageGenPrefix ? "image_generation" : activeMode;
+      const requestType: MessageDebug["requestType"] =
+        effectiveMode === "image_generation" ? "image_generation" : "text";
 
       try {
         // Build messages array for API - limit to recent messages to reduce payload and latency
