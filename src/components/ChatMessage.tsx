@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import { Message } from "@/hooks/useChatPersistence";
 import type { AIMode } from "@/components/ModeSelector";
-import { Sparkles, User, Copy, Check, Download, RefreshCw, Pencil, ImageIcon } from "lucide-react";
+import { Sparkles, User, Copy, Check, Download, RefreshCw, Pencil, ImageIcon, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
@@ -18,7 +18,8 @@ interface ChatMessageProps {
   onEditImage?: (imageUrl: string, instruction: string) => void;
   isEditingImage?: boolean;
   onSuggestionClick?: (suggestion: string) => void;
-  onRetry?: (prompt: string, originalMode?: AIMode) => void;
+  onRetry?: (prompt: string, originalMode?: AIMode) => void | Promise<void>;
+  isRetrying?: boolean;
 }
 
 export const ChatMessage = ({
@@ -30,6 +31,7 @@ export const ChatMessage = ({
   isEditingImage,
   onSuggestionClick,
   onRetry,
+  isRetrying,
 }: ChatMessageProps) => {
   const isUser = message.role === "user";
   const showTypingIndicator = isStreaming && !message.content;
@@ -158,10 +160,18 @@ export const ChatMessage = ({
                       onClick={() =>
                         onRetry(message.debug!.originalPrompt!, message.debug!.originalMode)
                       }
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
+                      disabled={isRetrying}
+                      aria-busy={isRetrying}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-destructive/10"
                     >
-                      <RefreshCw className="w-3.5 h-3.5" />
-                      {message.debug.requestType === "image_generation"
+                      {isRetrying ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <RefreshCw className="w-3.5 h-3.5" />
+                      )}
+                      {isRetrying
+                        ? "Retrying…"
+                        : message.debug.requestType === "image_generation"
                         ? "Retry image generation"
                         : "Retry"}
                     </button>
