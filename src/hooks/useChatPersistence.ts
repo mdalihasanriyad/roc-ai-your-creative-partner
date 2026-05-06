@@ -497,7 +497,11 @@ export function useChatPersistence(userId: string | undefined) {
           errorMessage: errMsg,
           durationMs: Math.round(performance.now() - startedAt),
         };
-        const debug: MessageDebug = { ...baseDebug, originalPrompt: userMessage.content };
+        const debug: MessageDebug = {
+          ...baseDebug,
+          originalPrompt: userMessage.content,
+          originalMode: activeMode,
+        };
         toast.error(errMsg);
         setMessages((prev) =>
           prev.map((m) =>
