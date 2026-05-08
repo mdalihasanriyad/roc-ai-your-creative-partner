@@ -109,6 +109,13 @@ export const ChatMessage = ({
     }
   };
 
+  const handleRetry = () => {
+    if (cooldown || isRetrying || !message.debug?.originalPrompt || !onRetry) return;
+    setCooldown(true);
+    onRetry(message.debug.originalPrompt, message.debug.originalMode);
+    cooldownRef.current = setTimeout(() => setCooldown(false), 2500);
+  };
+
   return (
     <TooltipProvider>
       <div className={`py-4 sm:py-6 ${isUser ? "bg-transparent" : "bg-muted/20"}`}>
