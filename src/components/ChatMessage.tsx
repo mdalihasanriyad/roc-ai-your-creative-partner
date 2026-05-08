@@ -42,6 +42,8 @@ export const ChatMessage = ({
   const [selectedImageForEdit, setSelectedImageForEdit] = useState<string>("");
   const [elapsed, setElapsed] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [cooldown, setCooldown] = useState(false);
+  const cooldownRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (isGeneratingImage) {
@@ -52,6 +54,10 @@ export const ChatMessage = ({
     }
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [isGeneratingImage]);
+
+  useEffect(() => {
+    return () => { if (cooldownRef.current) clearTimeout(cooldownRef.current); };
+  }, []);
 
   const formattedTime = timestamp
     ? format(new Date(timestamp), "h:mm a")
