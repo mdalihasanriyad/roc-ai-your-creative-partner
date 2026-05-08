@@ -111,11 +111,21 @@ export const ChatMessage = ({
     }
   };
 
-  const handleRetry = () => {
-    if (cooldown || isRetrying || !message.debug?.originalPrompt || !onRetry) return;
+  const handleRetry = async () => {
+    if (cooldown || isRetrying || retryStatus === "sending" || !message.debug?.originalPrompt || !onRetry) return;
+    setRetryStatus("sending");
     setCooldown(true);
-    onRetry(message.debug.originalPrompt, message.debug.originalMode);
-    cooldownRef.current = setTimeout(() => setCooldown(false), 2500);
+    try {
+      await onRetry(message.debug.originalPrompt, message.debug.originalMode);
+      setRetryStatus("idle");
+    } catch {
+      setRetryStatus("failed");
+    } finally {
+      cooldownRef.current = setTimeout(() => {
+        setCooldown(false);
+        setRetryStatus("idle");
+      }, 2500);
+    }
   };
 
   return (
