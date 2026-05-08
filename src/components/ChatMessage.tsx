@@ -194,25 +194,32 @@ export const ChatMessage = ({
                 <div className="mb-3 space-y-2">
                   {message.error && message.debug.originalPrompt && onRetry && (
                     <div className="flex flex-col gap-1">
-                      <button
-                        onClick={handleRetry}
-                        disabled={isRetrying || cooldown || retryStatus === "sending"}
-                        aria-busy={retryStatus === "sending"}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-destructive/10 w-fit"
-                      >
-                        {retryStatus === "sending" || cooldown ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        ) : (
-                          <RefreshCw className="w-3.5 h-3.5" />
+                      <div className="relative inline-flex">
+                        <button
+                          onClick={handleRetry}
+                          disabled={isRetrying || cooldown || retryStatus === "sending"}
+                          aria-busy={retryStatus === "sending"}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-destructive/10 w-fit"
+                        >
+                          {retryStatus === "sending" || cooldown ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <RefreshCw className="w-3.5 h-3.5" />
+                          )}
+                          {retryStatus === "sending"
+                            ? "Sending…"
+                            : cooldown
+                            ? "Retrying…"
+                            : message.debug.requestType === "image_generation"
+                            ? "Retry image generation"
+                            : "Retry"}
+                        </button>
+                        {cooldownLeft > 0 && (
+                          <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground px-1 ring-2 ring-background">
+                            {cooldownLeft}
+                          </span>
                         )}
-                        {retryStatus === "sending"
-                          ? "Sending…"
-                          : cooldown
-                          ? "Retrying…"
-                          : message.debug.requestType === "image_generation"
-                          ? "Retry image generation"
-                          : "Retry"}
-                      </button>
+                      </div>
                       {retryStatus === "sending" && (
                         <span className="text-[11px] text-muted-foreground">Sending…</span>
                       )}
