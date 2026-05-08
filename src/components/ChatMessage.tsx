@@ -170,19 +170,17 @@ export const ChatMessage = ({
                 <div className="mb-3 space-y-2">
                   {message.error && message.debug.originalPrompt && onRetry && (
                     <button
-                      onClick={() =>
-                        onRetry(message.debug!.originalPrompt!, message.debug!.originalMode)
-                      }
-                      disabled={isRetrying}
+                      onClick={handleRetry}
+                      disabled={isRetrying || cooldown}
                       aria-busy={isRetrying}
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-destructive/10"
                     >
-                      {isRetrying ? (
+                      {isRetrying || cooldown ? (
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
                       ) : (
                         <RefreshCw className="w-3.5 h-3.5" />
                       )}
-                      {isRetrying
+                      {isRetrying || cooldown
                         ? "Retrying…"
                         : message.debug.requestType === "image_generation"
                         ? "Retry image generation"
