@@ -44,6 +44,7 @@ export const ChatMessage = ({
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [cooldown, setCooldown] = useState(false);
   const cooldownRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [retryStatus, setRetryStatus] = useState<"idle" | "sending" | "failed">("idle");
 
   useEffect(() => {
     if (isGeneratingImage) {
@@ -109,11 +110,21 @@ export const ChatMessage = ({
     }
   };
 
-  const handleRetry = () => {
-    if (cooldown || isRetrying || !message.debug?.originalPrompt || !onRetry) return;
+  const handleRetry = async () => {
+    if (cooldown || isRetrying || retryStatus === "sending" || !message.debug?.originalPrompt || !onRetry) return;
+    setRetryStatus("sending");
     setCooldown(true);
-    onRetry(message.debug.originalPrompt, message.debug.originalMode);
-    cooldownRef.current = setTimeout(() => setCooldown(false), 2500);
+    try {
+      await onRetry(message.debug.originalPrompt, message.debug.originalMode);
+      setRetryStatus("idle");
+    } catch {
+      setRetryStatus("failed");
+    } finally {
+      cooldownRef.current = setTimeout(() => {
+        setCooldown(false);
+        setRetryStatus("idle");
+      }, 2500);
+    }
   };
 
   return (
@@ -169,23 +180,33 @@ export const ChatMessage = ({
               {!isUser && message.debug && (
                 <div className="mb-3 space-y-2">
                   {message.error && message.debug.originalPrompt && onRetry && (
-                    <button
-                      onClick={handleRetry}
-                      disabled={isRetrying || cooldown}
-                      aria-busy={isRetrying}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-destructive/10"
-                    >
-                      {isRetrying || cooldown ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <RefreshCw className="w-3.5 h-3.5" />
+                    <div className="flex flex-col gap-1">
+                      <button
+                        onClick={handleRetry}
+                        disabled={isRetrying || cooldown || retryStatus === "sending"}
+                        aria-busy={retryStatus === "sending"}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-destructive/10 w-fit"
+                      >
+                        {retryStatus === "sending" || cooldown ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <RefreshCw className="w-3.5 h-3.5" />
+                        )}
+                        {retryStatus === "sending"
+                          ? "Sending…"
+                          : cooldown
+                          ? "Retrying…"
+                          : message.debug.requestType === "image_generation"
+                          ? "Retry image generation"
+                          : "Retry"}
+                      </button>
+                      {retryStatus === "sending" && (
+                        <span className="text-[11px] text-muted-foreground">Sending…</span>
                       )}
-                      {isRetrying || cooldown
-                        ? "Retrying…"
-                        : message.debug.requestType === "image_generation"
-                        ? "Retry image generation"
-                        : "Retry"}
-                    </button>
+                      {retryStatus === "failed" && (
+                        <span className="text-[11px] text-destructive">Failed—try again</span>
+                      )}
+                    </div>
                   )}
                   <details
                     className="rounded-lg border border-destructive/30 bg-destructive/5 text-xs"
