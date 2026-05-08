@@ -45,6 +45,7 @@ export const ChatMessage = ({
   const [cooldown, setCooldown] = useState(false);
   const cooldownRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [retryStatus, setRetryStatus] = useState<"idle" | "sending" | "failed">("idle");
+  const [cooldownLeft, setCooldownLeft] = useState(0);
 
   useEffect(() => {
     if (isGeneratingImage) {
