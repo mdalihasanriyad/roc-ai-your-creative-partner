@@ -114,19 +114,31 @@ export const ChatMessage = ({
   const handleRetry = async () => {
     if (cooldown || isRetrying || retryStatus === "sending" || !message.debug?.originalPrompt || !onRetry) return;
     setRetryStatus("sending");
-    setCooldown(true);
     try {
       await onRetry(message.debug.originalPrompt, message.debug.originalMode);
       setRetryStatus("idle");
     } catch {
       setRetryStatus("failed");
     } finally {
-      cooldownRef.current = setTimeout(() => {
-        setCooldown(false);
-        setRetryStatus("idle");
-      }, 2500);
+      setCooldown(true);
     }
   };
+
+  useEffect(() => {
+    if (!cooldown) {
+      setCooldownLeft(0);
+      return;
+    }
+    setCooldownLeft(2);
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    timers.push(setTimeout(() => setCooldownLeft(1), 1000));
+    timers.push(setTimeout(() => setCooldownLeft(0), 2000));
+    timers.push(setTimeout(() => {
+      setCooldown(false);
+      setRetryStatus("idle");
+    }, 2000));
+    return () => timers.forEach(clearTimeout);
+  }, [cooldown]);
 
   return (
     <TooltipProvider>
