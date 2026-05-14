@@ -208,6 +208,15 @@ export const ChatMessage = ({
                               onClick={handleRetry}
                               disabled={isRetrying || cooldown || retryStatus === "sending"}
                               aria-busy={retryStatus === "sending"}
+                              aria-label={
+                                retryStatus === "sending"
+                                  ? "Retrying request, please wait"
+                                  : cooldownLeft > 0
+                                  ? `Retry available in ${cooldownLeft} second${cooldownLeft !== 1 ? "s" : ""}`
+                                  : message.debug.requestType === "image_generation"
+                                  ? "Retry image generation"
+                                  : "Retry"
+                              }
                               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-destructive/10 w-fit"
                             >
                               {retryStatus === "sending" || cooldown ? (
