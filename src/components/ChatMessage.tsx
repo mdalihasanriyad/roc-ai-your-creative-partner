@@ -194,6 +194,13 @@ export const ChatMessage = ({
                 <div className="mb-3 space-y-2">
                   {message.error && message.debug.originalPrompt && onRetry && (
                     <div className="flex flex-col gap-1">
+                      <span aria-live="polite" aria-atomic="true" className="sr-only">
+                        {retryStatus === "sending"
+                          ? "Retrying request…"
+                          : cooldownLeft > 0
+                          ? `Retry available in ${cooldownLeft} second${cooldownLeft !== 1 ? "s" : ""}`
+                          : ""}
+                      </span>
                       <div className="relative inline-flex">
                         <button
                           onClick={handleRetry}
