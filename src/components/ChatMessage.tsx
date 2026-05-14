@@ -248,6 +248,11 @@ export const ChatMessage = ({
                       {retryStatus === "sending" && (
                         <span className="text-[11px] text-muted-foreground">Sending…</span>
                       )}
+                      {cooldownLeft > 0 && retryStatus !== "sending" && (
+                        <span className="text-[11px] text-muted-foreground">
+                          Available in {cooldownLeft} second{cooldownLeft !== 1 ? "s" : ""}
+                        </span>
+                      )}
                       {retryStatus === "failed" && (
                         <span className="text-[11px] text-destructive">Failed—try again</span>
                       )}
